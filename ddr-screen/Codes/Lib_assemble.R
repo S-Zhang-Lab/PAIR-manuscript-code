@@ -61,7 +61,6 @@ colnames(Final)[1] <- "seq_ID"
 print(head(Final))
 dim(Final)
 
-# Save table
-write.table(Final, file = "./Misc/Final_oligos.csv", sep = "\t", row.names = FALSE, col.names = TRUE)
-
+# Save the final table to a CSV file with comma separation
+write.csv(Final, file = "./Misc/Final_oligos.csv", row.names = FALSE)
 
