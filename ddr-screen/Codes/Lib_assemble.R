@@ -1,0 +1,45 @@
+library(stringi)
+library(tidyr)
+library(dplyr)
+
+crRNA_table <- read.csv("Misc/crRNA_table.csv", sep="\t")
+df <- crRNA_table
+df$num <- seq(1:5)
+head(df)
+
+# Convert sequences to uppercase
+df$CRISPRa <- toupper(df$CRISPRa)
+df$CasRx <- toupper(df$CasRx)
+
+# Convert to long format
+df_long <- pivot_longer(df, cols = c(CRISPRa, CasRx), names_to = "Type", values_to = "Sequence")
+df_long$name <- paste(df_long$ID, df_long$Type, df_long$num, sep = "_")
+head(df_long)
+
+# Define e1, e3, and e5
+e1 <- "GAGGGCCTATTTCCCATGATTcgtctcacacc"
+e3 <- "gttttagagctaggccaacatgaggatcacccatgtctgcagggcctagcaagttaaaataaggctagtccgttatcaacttggccaacatgaggatcacccatgtctgcagggccaagtggcaccgagtcggtgcttCAAGTAAACCCCTACCAACTGGTCGGGGTTTGAAAC"
+e5 <- "TTTTTTTctacagagacgcacttgtacttcagcggtca"
+
+# Extract sequences based on Type
+CRISPRa_sequences <- df_long %>% filter(Type == "CRISPRa")
+CasRx_sequences <- df_long %>% filter(Type == "CasRx")
+
+# Create all possible combinations of indices
+combinations <- expand.grid(CRISPRa_index = 1:nrow(CRISPRa_sequences), 
+                            CasRx_index = 1:nrow(CasRx_sequences))
+
+# Add sequence and name columns based on indices
+combinations <- combinations %>%
+  mutate(CRISPRa = CRISPRa_sequences$Sequence[CRISPRa_index],
+         CasRx = CasRx_sequences$Sequence[CasRx_index],
+         CRISPRa_name = CRISPRa_sequences$name[CRISPRa_index],
+         CasRx_name = CasRx_sequences$name[CasRx_index])
+
+# Extract the gene names from the "name" column for comparison
+combinations <- combinations %>%
+  mutate(CRISPRa_ID = sub("_CRISPRa.*", "", CRISPRa_name),
+         CasRx_ID = sub("_CasRx.*", "", CasRx_name))
+
+# Filter out combinations where the sequences are from the same gene name (ID)
+combinations <- combinations %>% filter(CRISPRa_ID != CasRx_ID)
