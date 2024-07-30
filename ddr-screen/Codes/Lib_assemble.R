@@ -37,6 +37,12 @@ combinations <- combinations %>%
          CasRx_name = CasRx_sequences$name[CasRx_index])
 head(combinations)
 
+combinations_all <- combinations %>%
+  mutate(Final_oligos = paste0(e1, CRISPRa, e3, CasRx, e5))
+
+write.csv(combinations_all, file = "./Misc/Final_oligos_allNT.csv", row.names = FALSE)
+
+
 # Extract the gene names from the "name" column for comparison
 combinations <- combinations %>%
   mutate(CRISPRa_ID = sub("_CRISPRa.*", "", CRISPRa_name),
@@ -51,16 +57,6 @@ head(combinations)
 combinations <- combinations %>%
   mutate(Final_oligos = paste0(e1, CRISPRa, e3, CasRx, e5))
 
-# Create the final table
-Final <- data.frame(seq = seq(1:nrow(combinations)), combinations)
-
-# Rename the sequence column to "seq_ID"
-colnames(Final)[1] <- "seq_ID"
-
-# Display the final data frame
-print(head(Final))
-dim(Final)
-
 # Save the final table to a CSV file with comma separation
-write.csv(Final, file = "./Misc/Final_oligos.csv", row.names = FALSE)
+write.csv(combinations, file = "./Misc/Final_oligos.csv", row.names = FALSE)
 
