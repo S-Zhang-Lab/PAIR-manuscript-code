@@ -17,7 +17,7 @@ df_long$name <- paste(df_long$ID, df_long$Type, df_long$num, sep = "_")
 head(df_long)
 
 # Define e1, e3, and e5
-e1 <- "GAGGGCCTATTTCCCATGATTcgtctcacacc"
+e1 <- "GAGGGCCTATTTCCCATGATTcgtctcacaccg"
 e3 <- "gttttagagctaggccaacatgaggatcacccatgtctgcagggcctagcaagttaaaataaggctagtccgttatcaacttggccaacatgaggatcacccatgtctgcagggccaagtggcaccgagtcggtgcttCAAGTAAACCCCTACCAACTGGTCGGGGTTTGAAAC"
 e5 <- "TTTTTTTctacagagacgcacttgtacttcagcggtca"
 
@@ -42,21 +42,27 @@ combinations_all <- combinations %>%
 
 write.csv(combinations_all, file = "./Misc/Final_oligos_allNT.csv", row.names = FALSE)
 
+# Extract rows where both CRISPRa and CasRx columns start with "NT"
+filtered_combinations <- combinations_all[grepl("^NT", combinations_all$CRISPRa_name) & grepl("^NT", combinations_all$CasRx_name), ]
+head(filtered_combinations)
+
 
 # Extract the gene names from the "name" column for comparison
-combinations <- combinations %>%
+combinations_all <- combinations_all %>%
   mutate(CRISPRa_ID = sub("_CRISPRa.*", "", CRISPRa_name),
          CasRx_ID = sub("_CasRx.*", "", CasRx_name))
-head(combinations)
+head(combinations_all)
 
 # Filter out combinations where the sequences are from the same gene name (ID)
-combinations <- combinations %>% filter(CRISPRa_ID != CasRx_ID)
-head(combinations)
+combinations_all <- combinations_all %>% filter(CRISPRa_ID != CasRx_ID)
+head(combinations_all)
 
 # Create the final sequences
-combinations <- combinations %>%
-  mutate(Final_oligos = paste0(e1, CRISPRa, e3, CasRx, e5))
+combinations_all$CRISPRa_ID <- NULL
+combinations_all$CasRx_ID <- NULL
+
+Final <- rbind(filtered_combinations, combinations_all)
 
 # Save the final table to a CSV file with comma separation
-write.csv(combinations, file = "./Misc/Final_oligos.csv", row.names = FALSE)
+write.csv(Final, file = "./Misc/Final_oligos.csv", row.names = FALSE)
 
