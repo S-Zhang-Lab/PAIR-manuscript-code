@@ -61,7 +61,7 @@ head(combinations_all)
 combinations_all$CRISPRa_ID <- NULL
 combinations_all$CasRx_ID <- NULL
 
-Final <- rbind(filtered_combinations, combinations_all)
+Final <- rbind(combinations_all, filtered_combinations)
 
 # Save the final table to a CSV file with comma separation
 write.csv(Final, file = "./Misc/Final_oligos.csv", row.names = FALSE)
