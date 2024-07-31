@@ -2,6 +2,10 @@ library(stringi)
 library(tidyr)
 library(dplyr)
 
+# generate random 10bit DNA barcode
+BC <- read.csv("Misc/BC.csv", sep="\t")
+
+# load crRNA design table
 crRNA_table <- read.csv("Misc/crRNA_table.csv", sep="\t")
 df <- crRNA_table
 df$num <- seq(1:5)
@@ -16,10 +20,12 @@ df_long <- pivot_longer(df, cols = c(CRISPRa, CasRx), names_to = "Type", values_
 df_long$name <- paste(df_long$ID, df_long$Type, df_long$num, sep = "_")
 head(df_long)
 
-# Define e1, e3, and e5
+# Define e1, e3, e5 and e7
 e1 <- "GAGGGCCTATTTCCCATGATTcgtctcacacc"
 e3 <- "gttttagagctaggccaacatgaggatcacccatgtctgcagggcctagcaagttaaaataaggctagtccgttatcaacttggccaacatgaggatcacccatgtctgcagggccaagtggcaccgagtcggtgcttCAAGTAAACCCCTACCAACTGGTCGGGGTTTGAAAC"
-e5 <- "TTTTTTTctacagagacgcacttgtacttcagcggtca"
+e5 <- "TTTTTTT"
+e6 <- BC
+e7 <- "ctacagagacgcacttgtacttcagcggtca"
 
 # Extract sequences based on Type
 CRISPRa_sequences <- df_long %>% filter(Type == "CRISPRa")
