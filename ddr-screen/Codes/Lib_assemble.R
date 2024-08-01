@@ -3,7 +3,7 @@ library(tidyr)
 library(dplyr)
 
 # generate random 10bit DNA barcode
-BC <- read.csv("Misc/BC.csv", sep="\t")
+BC <- read.csv("Misc/BC.txt", sep="\t")
 
 # load crRNA design table
 crRNA_table <- read.csv("Misc/crRNA_table.csv", sep="\t")
