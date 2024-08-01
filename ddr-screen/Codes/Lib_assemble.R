@@ -20,8 +20,13 @@ df_long <- pivot_longer(df, cols = c(CRISPRa, CasRx), names_to = "Type", values_
 df_long$name <- paste(df_long$ID, df_long$Type, df_long$num, sep = "_")
 head(df_long)
 
+<<<<<<< HEAD
 # Define e1, e3, e5 and e7
 e1 <- "GAGGGCCTATTTCCCATGATTcgtctcacacc"
+=======
+# Define e1, e3, and e5
+e1 <- "GAGGGCCTATTTCCCATGATTcgtctcacaccg"
+>>>>>>> 1b8b3f954286b3757eb894e6303ed57be6d26fbf
 e3 <- "gttttagagctaggccaacatgaggatcacccatgtctgcagggcctagcaagttaaaataaggctagtccgttatcaacttggccaacatgaggatcacccatgtctgcagggccaagtggcaccgagtcggtgcttCAAGTAAACCCCTACCAACTGGTCGGGGTTTGAAAC"
 e5 <- "TTTTTTT"
 e6 <- BC
@@ -43,29 +48,31 @@ combinations <- combinations %>%
          CasRx_name = CasRx_sequences$name[CasRx_index])
 head(combinations)
 
-# Extract the gene names from the "name" column for comparison
-combinations <- combinations %>%
-  mutate(CRISPRa_ID = sub("_CRISPRa.*", "", CRISPRa_name),
-         CasRx_ID = sub("_CasRx.*", "", CasRx_name))
-head(combinations)
-
-# Filter out combinations where the sequences are from the same gene name (ID)
-combinations <- combinations %>% filter(CRISPRa_ID != CasRx_ID)
-head(combinations)
-
-# Create the final sequences
-combinations <- combinations %>%
+combinations_all <- combinations %>%
   mutate(Final_oligos = paste0(e1, CRISPRa, e3, CasRx, e5))
 
-# Create the final table
-Final <- data.frame(seq = seq(1:nrow(combinations)), combinations)
+write.csv(combinations_all, file = "./Misc/Final_oligos_allNT.csv", row.names = FALSE)
 
-# Rename the sequence column to "seq_ID"
-colnames(Final)[1] <- "seq_ID"
+# Extract rows where both CRISPRa and CasRx columns start with "NT"
+filtered_combinations <- combinations_all[grepl("^NT", combinations_all$CRISPRa_name) & grepl("^NT", combinations_all$CasRx_name), ]
+head(filtered_combinations)
 
-# Display the final data frame
-print(head(Final))
-dim(Final)
+
+# Extract the gene names from the "name" column for comparison
+combinations_all <- combinations_all %>%
+  mutate(CRISPRa_ID = sub("_CRISPRa.*", "", CRISPRa_name),
+         CasRx_ID = sub("_CasRx.*", "", CasRx_name))
+head(combinations_all)
+
+# Filter out combinations where the sequences are from the same gene name (ID)
+combinations_all <- combinations_all %>% filter(CRISPRa_ID != CasRx_ID)
+head(combinations_all)
+
+# Create the final sequences
+combinations_all$CRISPRa_ID <- NULL
+combinations_all$CasRx_ID <- NULL
+
+Final <- rbind(combinations_all, filtered_combinations)
 
 # Save the final table to a CSV file with comma separation
 write.csv(Final, file = "./Misc/Final_oligos.csv", row.names = FALSE)
