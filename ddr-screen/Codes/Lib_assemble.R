@@ -65,7 +65,7 @@ df_long <- pivot_longer(df, cols = c(CRISPRa, CasRx), names_to = "Type", values_
 df_long$name <- paste(df_long$ID, df_long$Type, df_long$num, sep = "_")
 head(df_long)
 
-# Define e1, e3, and e5
+# Define oligo elements
 e1 <- "AGGGCCTATTTCCCATGATTcgtctcacaccg"
 e2 <- "N20"
 e3 <- "gttttagagctaggccaacatgaggatcacccatgtctgcagggcctagcaagttaaaataaggctagtccgttatcaacttggccaacatgaggatcacccatgtctgcagggccaagtggcaccgagtcggtgcttCAAGTAAACCCCTACCAACTGGTCGGGGTTTGAAAC"
@@ -94,7 +94,7 @@ combinations_all <- combinations %>%
   mutate(Final_oligos = paste0(e1, CRISPRa, e3, CasRx, e5, selected_barcodes, e7))
 combinations_all[11020:11025,5:7]
 
-write.csv(combinations_all, file = "./Misc/Final_oligos_allNT.csv", row.names = FALSE)
+write.csv(combinations_all, file = "./Misc/Final_oligos_allcombinations.csv", row.names = FALSE)
 
 # Extract rows where both CRISPRa and CasRx columns start with "NT"
 filtered_combinations <- combinations_all[grepl("^NT", combinations_all$CRISPRa_name) & grepl("^NT", combinations_all$CasRx_name), ]
