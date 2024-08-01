@@ -20,13 +20,8 @@ df_long <- pivot_longer(df, cols = c(CRISPRa, CasRx), names_to = "Type", values_
 df_long$name <- paste(df_long$ID, df_long$Type, df_long$num, sep = "_")
 head(df_long)
 
-<<<<<<< HEAD
-# Define e1, e3, e5 and e7
-e1 <- "GAGGGCCTATTTCCCATGATTcgtctcacacc"
-=======
 # Define e1, e3, and e5
 e1 <- "GAGGGCCTATTTCCCATGATTcgtctcacaccg"
->>>>>>> 1b8b3f954286b3757eb894e6303ed57be6d26fbf
 e3 <- "gttttagagctaggccaacatgaggatcacccatgtctgcagggcctagcaagttaaaataaggctagtccgttatcaacttggccaacatgaggatcacccatgtctgcagggccaagtggcaccgagtcggtgcttCAAGTAAACCCCTACCAACTGGTCGGGGTTTGAAAC"
 e5 <- "TTTTTTT"
 e6 <- BC
