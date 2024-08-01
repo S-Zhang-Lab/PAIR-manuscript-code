@@ -8,10 +8,17 @@ Investigation of Transcriptome Interaction in DNA Repair Pathway by Programmable
 
 The dual regulatory crRNA cassette is with the following structure:
 
-GAGGGCCTATTTCCCATGATTcgtctcacaccgNNNNNNNNNNNNNNNNNNNNgttttagagctaggccaacatgaggatcacccatgtctgcagggcctagcaagttaaaataaggctagtccgttatcaacttggccaacatgaggatcacccatgtctgcagggccaagtggcaccgagtcggtgcttCAAGTAAACCCCTACCAACTGGTCGGGGTTTGAAACnnnnnnnnnnnnnnnnnnnnnnnTTTTTTT[BC14]ctacagagacgcacttgtacttcagcggtca
+e1 <- "AGGGCCTATTTCCCATGATTcgtctcacaccg"
 
-N: 20 bases gRNA for CRISPRa
+e2 <- "N20": CRISPRa gRNA
 
-n: 23 bases crRNA for Cas13d
+e3 <- "gttttagagctaggccaacatgaggatcacccatgtctgcagggcctagcaagttaaaataaggctagtccgttatcaacttggccaacatgaggatcacccatgtctgcagggccaagtggcaccgagtcggtgcttCAAGTAAACCCCTACCAACTGGTCGGGGTTTGAAAC"
 
-[BC14] : 14 digit BC with hamming distance \> 5, which allow 2 bit error correction
+e4 <- "n23": Cas13d (CasRx) crRNA
+
+e5 <- "TTTTTTT"
+
+e6 <- "BC14":  14 digit BC with hamming distance more than 5, which allow 2 bit error correction
+
+e7 <- "ctacagagacgcacttgtacttcagcggtc"
+
