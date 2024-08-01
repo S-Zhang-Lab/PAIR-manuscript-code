@@ -1,10 +1,54 @@
 library(stringi)
 library(tidyr)
 library(dplyr)
+library(DNABarcodes)
 
-# generate random 10bit DNA barcode
-BC <- read.csv("Misc/BC.txt", sep="\t")
+# generate random 12 bit DNA barcode with the desired length and Hamming distance 3 for guaranteed 1 bit error correction
+initial_barcodes <- create.dnabarcodes(12, dist = 3)
 
+# Function to check for continuous identical nucleotides
+has_continuous_nucleotides <- function(barcode, n = 3) {
+  for (i in 1:(nchar(barcode) - n + 1)) {
+    if (substring(barcode, i, i + n - 1) == paste0(rep(substring(barcode, i, i), n), collapse = "")) {
+      return(TRUE)
+    }
+  }
+  return(FALSE)
+}
+
+# Function to check for balanced nucleotides
+is_balanced <- function(barcode) {
+  counts <- table(strsplit(barcode, NULL)[[1]])
+  # Ensure that counts of A, T, C, G are approximately equal
+  return(all(abs(counts - mean(counts)) <= 1))
+}
+
+# Filter barcodes for continuous identical nucleotides
+filtered_barcodes <- initial_barcodes[!sapply(initial_barcodes, has_continuous_nucleotides)]
+
+# Further filter for balanced nucleotides
+balanced_barcodes <- filtered_barcodes[sapply(filtered_barcodes, is_balanced)]
+
+# Check if we have enough barcodes after filtering
+if (length(balanced_barcodes) < 11025) {
+  stop("Not enough barcodes available after filtering. Consider relaxing some constraints.")
+}
+
+# Randomly pick 11025 barcodes
+set.seed(123)  # Set seed for reproducibility
+selected_barcodes <- sample(balanced_barcodes, 11025, replace = FALSE)
+
+# Analyze the selected barcodes using analyse.barcodes
+barcode_analysis <- analyse.barcodes(selected_barcodes)
+
+# Output the analysis results and selected barcodes
+print(barcode_analysis)
+
+# view selected barcodes
+selected_barcodes[1:50]
+
+
+# ==  Step 2 Assemble crRNA design table ==
 # load crRNA design table
 crRNA_table <- read.csv("Misc/crRNA_table.csv", sep="\t")
 df <- crRNA_table
@@ -24,7 +68,6 @@ head(df_long)
 e1 <- "GAGGGCCTATTTCCCATGATTcgtctcacaccg"
 e3 <- "gttttagagctaggccaacatgaggatcacccatgtctgcagggcctagcaagttaaaataaggctagtccgttatcaacttggccaacatgaggatcacccatgtctgcagggccaagtggcaccgagtcggtgcttCAAGTAAACCCCTACCAACTGGTCGGGGTTTGAAAC"
 e5 <- "TTTTTTT"
-e6 <- BC
 e7 <- "ctacagagacgcacttgtacttcagcggtca"
 
 # Extract sequences based on Type
@@ -44,14 +87,14 @@ combinations <- combinations %>%
 head(combinations)
 
 combinations_all <- combinations %>%
-  mutate(Final_oligos = paste0(e1, CRISPRa, e3, CasRx, e5))
+  mutate(Final_oligos = paste0(e1, CRISPRa, e3, CasRx, e5, selected_barcodes, e7))
+combinations_all[11020:11025,5:7]
 
 write.csv(combinations_all, file = "./Misc/Final_oligos_allNT.csv", row.names = FALSE)
 
 # Extract rows where both CRISPRa and CasRx columns start with "NT"
 filtered_combinations <- combinations_all[grepl("^NT", combinations_all$CRISPRa_name) & grepl("^NT", combinations_all$CasRx_name), ]
 head(filtered_combinations)
-
 
 # Extract the gene names from the "name" column for comparison
 combinations_all <- combinations_all %>%
@@ -68,6 +111,9 @@ combinations_all$CRISPRa_ID <- NULL
 combinations_all$CasRx_ID <- NULL
 
 Final <- rbind(combinations_all, filtered_combinations)
+
+head(Final)
+tail(Final)
 
 # Save the final table to a CSV file with comma separation
 write.csv(Final, file = "./Misc/Final_oligos.csv", row.names = FALSE)
