@@ -3,8 +3,9 @@ library(tidyr)
 library(dplyr)
 library(DNABarcodes)
 
-# generate random 12 bit DNA barcode with the desired length and Hamming distance 3 for guaranteed 1 bit error correction
-initial_barcodes <- create.dnabarcodes(12, dist = 3)
+# generate random 14 bit DNA barcode with the desired length and Hamming distance 5 for guaranteed 2 bit error correction
+initial_barcodes_14 <- create.dnabarcodes(14, dist = 5, cores=24)
+initial_barcodes <- initial_barcodes_14
 
 # Function to check for continuous identical nucleotides
 has_continuous_nucleotides <- function(barcode, n = 3) {
@@ -16,11 +17,11 @@ has_continuous_nucleotides <- function(barcode, n = 3) {
   return(FALSE)
 }
 
-# Function to check for balanced nucleotides
-is_balanced <- function(barcode) {
+# Function to check for balanced nucleotides with a tolerance level
+is_balanced <- function(barcode, tolerance = 2) {
   counts <- table(strsplit(barcode, NULL)[[1]])
-  # Ensure that counts of A, T, C, G are approximately equal
-  return(all(abs(counts - mean(counts)) <= 1))
+  # Ensure that counts of A, T, C, G are approximately equal within the given tolerance
+  return(all(abs(counts - mean(counts)) <= tolerance))
 }
 
 # Filter barcodes for continuous identical nucleotides
@@ -65,10 +66,13 @@ df_long$name <- paste(df_long$ID, df_long$Type, df_long$num, sep = "_")
 head(df_long)
 
 # Define e1, e3, and e5
-e1 <- "GAGGGCCTATTTCCCATGATTcgtctcacaccg"
+e1 <- "AGGGCCTATTTCCCATGATTcgtctcacaccg"
+e2 <- "N20"
 e3 <- "gttttagagctaggccaacatgaggatcacccatgtctgcagggcctagcaagttaaaataaggctagtccgttatcaacttggccaacatgaggatcacccatgtctgcagggccaagtggcaccgagtcggtgcttCAAGTAAACCCCTACCAACTGGTCGGGGTTTGAAAC"
+e4 <- "n23"
 e5 <- "TTTTTTT"
-e7 <- "ctacagagacgcacttgtacttcagcggtca"
+e6 <- "BC14"
+e7 <- "ctacagagacgcacttgtacttcagcggtc"
 
 # Extract sequences based on Type
 CRISPRa_sequences <- df_long %>% filter(Type == "CRISPRa")
