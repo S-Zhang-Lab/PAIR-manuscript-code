@@ -122,3 +122,6 @@ tail(Final)
 # Save the final table to a CSV file with comma separation
 write.csv(Final, file = "./Misc/Final_oligos.csv", row.names = FALSE)
 
+# add oligo names
+Final_oligos <- read.csv("./Misc/Final_oligos.csv")
+
