@@ -125,3 +125,5 @@ write.csv(Final, file = "./Misc/Final_oligos.csv", row.names = FALSE)
 # add oligo names
 Final_oligos <- read.csv("./Misc/Final_oligos.csv")
 
+Final_oligos$ID <- paste("PAIR", seq(1:10525), sep = "_")
+write.csv(Final_oligos, file = "./Misc/Final_oligos_withID.csv", row.names = FALSE)
