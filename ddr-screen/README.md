@@ -3,7 +3,8 @@
 Investigation of Transcriptome Interaction in DNA Repair Pathway by Programmable CRISPR Paired Sequencing
 
 ### Background introduction (CC add)
-U6-driven PAIR RNA cassette structure can be find here: https://benchling.com/s/seq-SQ0Ur1pqXan8cwLW510g?m=slm-h2zfzbW6z9kpwVhFuXMc 
+
+U6-driven PAIR RNA cassette structure can be find here: <https://benchling.com/s/seq-SQ0Ur1pqXan8cwLW510g?m=slm-h2zfzbW6z9kpwVhFuXMc>
 
 ### Design of Dual crRNA cassette
 
