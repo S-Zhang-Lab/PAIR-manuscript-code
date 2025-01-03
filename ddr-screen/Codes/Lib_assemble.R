@@ -2,6 +2,7 @@ library(stringi)
 library(tidyr)
 library(dplyr)
 library(DNABarcodes)
+library(stringr)
 
 # generate random 14 bit DNA barcode with the desired length and Hamming distance 5 for guaranteed 2 bit error correction
 initial_barcodes_14 <- create.dnabarcodes(14, dist = 5, cores=24)
@@ -118,6 +119,12 @@ Final <- rbind(combinations_all, filtered_combinations)
 
 head(Final)
 tail(Final)
+
+# Extract barcode sequences
+Final$BC14 <- str_extract(Final$Final_oligos, "(?<=TTTTTTT).{14}(?=ctacagagacgca)")
+
+# View results
+print(Final)
 
 # Save the final table to a CSV file with comma separation
 write.csv(Final, file = "./Misc/Final_oligos.csv", row.names = FALSE)
