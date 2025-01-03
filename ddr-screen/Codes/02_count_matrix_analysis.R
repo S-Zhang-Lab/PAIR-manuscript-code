@@ -7,7 +7,8 @@ count_matrix$DDR5 <- NULL
 
 # Set row names using CRISPRa_name and CasRx_name
 row.names(count_matrix) <- paste(count_matrix$CRISPRa_name, count_matrix$CasRx_name, sep = "_")
-
+count_matrix$combined_name <- paste(count_matrix$CRISPRa_name, count_matrix$CasRx_name, sep = "_")
+  
 # Step 2: Normalize DDR columns by dividing by the total counts of each column
 columns_to_normalize <- c("DDR1", "DDR2", "DDR3", "DDR4")
 
@@ -38,6 +39,10 @@ count_matrix$logFC_DDR3_DDR4 <- log2(count_matrix$DDR4_normalized + 1) - log2(co
 
 range(count_matrix$logFC_DDR1_DDR2)
 range(count_matrix$logFC_DDR3_DDR4)
+
+# write matrix
+write.csv(count_matrix, file = "./Results/PAIR_DDR_count_matrix.csv", row.names = FALSE)
+
 
 # Set thresholds for differential expression
 TH12 <- 6
@@ -77,7 +82,7 @@ annotation <- data.frame(
 rownames(annotation) <- common_genes
 
 # Plot heatmap
-pheatmap(
+p <- pheatmap(
   heatmap_data, 
   cluster_rows = TRUE,  # Cluster rows
   cluster_cols = TRUE,  # Cluster columns
@@ -86,19 +91,26 @@ pheatmap(
   main = "Heatmap of Common Genes"
 )
 
+p
+
+# Save the heatmap to a PDF file
+pdf("./Figures/Heatmap_of_Common_Genes.pdf", width = 10, height = 10)  # Set appropriate dimensions
+grid::grid.draw(p$gtable)  # Draw the pheatmap object
+dev.off()  # Close the PDF device
 
 # Step 7: Export results (Optional)
 write.csv(data.frame(Gene=row.names(diff_genes_DDR1_DDR2), diff_genes_DDR1_DDR2),
-          "Differential_Genes_DDR1_DDR2.csv", row.names = FALSE)
+          "./Results/Differential_Genes_DDR1_DDR2.csv", row.names = FALSE)
 write.csv(data.frame(Gene=row.names(diff_genes_DDR3_DDR4), diff_genes_DDR3_DDR4),
-          "Differential_Genes_DDR3_DDR4.csv", row.names = FALSE)
+          "./Results/Differential_Genes_DDR3_DDR4.csv", row.names = FALSE)
 
-write.csv(data.frame(Gene=common_positive), "Common_Positive_Genes.csv", row.names = FALSE)
-write.csv(data.frame(Gene=common_negative), "Common_Negative_Genes.csv", row.names = FALSE)
+write.csv(data.frame(Gene=common_positive), "./Results/Common_Positive_Genes.csv", row.names = FALSE)
+write.csv(data.frame(Gene=common_negative), "./Results/Common_Negative_Genes.csv", row.names = FALSE)
 
 # Step 8: Display results
 list(
   positive_common = common_positive,
   negative_common = common_negative
 )
+
 
