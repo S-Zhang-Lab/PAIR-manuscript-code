@@ -46,4 +46,4 @@ The raw sequencing reads QC'ed using fastp. The fastq processing steps can be fo
 
 ### Preliminary analysis in R
 
-Count normalization, manual DE gene calculation and logFC cutoff etc. has be documented in this [R script](Codes/02_count_matrix_analysis.R)
+Count normalization, manual DE gene calculation and logFC cutoff etc. has be documented in this [R script](Codes/02_count_matrix_analysis.R). The exported count matrix is [here](Results/PAIR_DDR_count_matrix.csv).
