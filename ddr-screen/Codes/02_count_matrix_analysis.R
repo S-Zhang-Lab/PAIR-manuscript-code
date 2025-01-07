@@ -1,5 +1,6 @@
 # Load count matrix table
-count_matrix <- read.csv("./Misc/count_matrix.csv")
+# count_matrix <- read.csv("./Misc/count_matrix.csv") # this is the exact matching count
+count_matrix <- read.csv("./Misc/kmer_HD1_count_matrix.csv") # this is the error corrected with 1-bit
 
 # Step 1: Clean up dataframe
 # Remove DDR5 as it is not required
