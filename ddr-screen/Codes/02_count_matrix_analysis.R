@@ -1,6 +1,6 @@
 # Load count matrix table
 # count_matrix <- read.csv("./Misc/count_matrix.csv") # this is the exact matching count
-count_matrix <- read.csv("./Misc/kmer_HD1_count_matrix.csv") # this is the error corrected with 1-bit
+count_matrix <- read.csv("./Misc/kmer20_HD1_count_matrix.csv") # this is the error corrected with 1-bit
 
 # Step 1: Clean up dataframe
 # Remove DDR5 as it is not required
@@ -95,7 +95,7 @@ p <- pheatmap(
 p
 
 # Save the heatmap to a PDF file
-pdf("./Figures/Heatmap_of_Common_Genes.pdf", width = 10, height = 10)  # Set appropriate dimensions
+pdf("./Figures/Heatmap_of_Common_Genes_kmer20.pdf", width = 10, height = 10)  # Set appropriate dimensions
 grid::grid.draw(p$gtable)  # Draw the pheatmap object
 dev.off()  # Close the PDF device
 
