@@ -18,8 +18,8 @@ count_data <- count_data[rowSums(count_data == 0) < 3, ]
 # Define metadata with batch information
 col_data <- data.frame(
   sample = colnames(count_data),
-  condition = c("Control", "Control", "Treatment", "Treatment"),  # Define conditions
-  batch = c("batch1", "batch2", "batch1", "batch2")               # Add batch information
+  condition = c("Control", "Treatment", "Control", "Treatment"),  # Define conditions
+  batch = c("batch1", "batch1", "batch2", "batch2")               # Add batch information
 )
 rownames(col_data) <- col_data$sample
 
@@ -37,7 +37,7 @@ dds <- DESeq(dds)
 res <- results(dds)
 
 # Filter significant DE genes (adjusted p-value < X, |log2FoldChange| > Y)
-de_genes <- res[!is.na(res$padj) & res$padj < 0.0002 & abs(res$log2FoldChange) > 17, ]
+de_genes <- res[!is.na(res$padj) & res$padj < 0.001 & abs(res$log2FoldChange) > 17, ]
 de_genes_df <- as.data.frame(de_genes)
 
 # Save significant DE genes
@@ -69,7 +69,7 @@ pheatmap(
   heatmap_data,
   scale = "row",
   cluster_rows = TRUE,
-  cluster_cols = FALSE,
+  cluster_cols = TRUE,
   show_rownames = TRUE,
   show_colnames = TRUE,
   main = "Heatmap of Significant DE Genes (Batch Corrected)",
