@@ -114,4 +114,34 @@ list(
   negative_common = common_negative
 )
 
+# recode the result for mageck
+
+# Load the necessary library
+library(dplyr)
+
+# Load the dataset
+data <- read.csv("./Misc/kmer20_HD1_count_matrix.csv") # this is the error corrected with 1-bit
+
+# Add the new columns
+data <- data %>%
+  mutate(
+    sgRNA = paste(CRISPRa_name, CasRx_name, sep = "_"),
+    Gene = paste(
+      sub("_.*", "", CRISPRa_name),
+      sub("_.*", "", CasRx_name),
+      sep = "_"
+    )
+  )
+
+data <- data[,c(11,12,6,7,8,9)]
+
+# Remove rows where all numeric columns contain only 0
+data1 <- data %>%
+  filter(!if_all(where(is.numeric), ~ . == 0))
+
+
+# Save the updated data table as input for mageck
+write.table(data1, "./Results/kmer20_HD1_count_matrix_for_mageck.txt", sep = "\t", row.names = FALSE, quote = FALSE)
+
+
 
