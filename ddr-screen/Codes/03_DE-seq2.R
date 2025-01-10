@@ -4,6 +4,7 @@
 library(DESeq2)
 library(pheatmap)
 library(ggplot2)
+library(ggrepel)
 
 # Load the data
 data <- read.delim("./Results/kmer20_HD1_count_matrix_for_mageck.txt", header = TRUE, sep = "\t")
@@ -77,10 +78,20 @@ pheatmap(
   annotation_colors = ann_colors
 )
 
-# Generate volcano plot
+# Generate volcano plot with top 10 gene labels
 volcano_data <- as.data.frame(res)
-volcano_data$significant <- !is.na(volcano_data$padj) & volcano_data$padj < 0.001 & abs(volcano_data$log2FoldChange) > 10
 
+# Add a column to identify significant genes
+volcano_data$significant <- !is.na(volcano_data$padj) & 
+  volcano_data$padj < 0.001 & 
+  abs(volcano_data$log2FoldChange) > 10
+
+# Sort the data by significance (-log10(padj)) and select the top 10 DE genes
+top_genes <- volcano_data %>%
+  arrange(padj) %>%
+  head(20)
+
+# Create the volcano plot
 ggplot(volcano_data, aes(x = log2FoldChange, y = -log10(padj))) +
   geom_point(aes(color = significant), alpha = 0.6) +
   scale_color_manual(values = c("gray", "red")) +
@@ -92,9 +103,17 @@ ggplot(volcano_data, aes(x = log2FoldChange, y = -log10(padj))) +
   ) +
   theme(legend.position = "none") +
   geom_hline(yintercept = -log10(0.001), linetype = "dashed", color = "blue") +
-  geom_vline(xintercept = c(-10, 10), linetype = "dashed", color = "blue")
+  geom_vline(xintercept = c(-10, 10), linetype = "dashed", color = "blue") +
+  # Add labels for the top 10 genes
+  geom_text_repel(
+    data = top_genes,
+    aes(label = rownames(top_genes)), # Adjust if gene names are stored in another column
+    size = 3,
+    max.overlaps = 10
+  )
 
 # Save volcano plot
 ggsave("./Figures/DEseq2_Volcano_Plot_with_Batch.pdf", width = 8, height = 8)
+ggsave("./Figures/DEseq2_Volcano_Plot_with_Batch_large.pdf", width = 20, height = 20)
 
 
