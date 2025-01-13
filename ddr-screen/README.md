@@ -2,7 +2,7 @@
 
 Investigation of Transcriptome Interaction in DNA Repair Pathway by Programmable CRISPR Paired Sequencing
 
-### 01 Backgound
+### 01 Background
 
 #### *Experiment name*
 
@@ -10,7 +10,7 @@ Systematically assay gene-gene interaction in DNA damage response by PAIR-seq
 
 #### *Organism*
 
-Homo sapiens Experiment type Other
+Homo sapiens
 
 #### *Design of Dual crRNA cassette*
 
@@ -40,7 +40,11 @@ The DNA oligo library was designed using [01_Lib_assemble.R](./Codes/01_Lib_asse
 
 #### *Groups*
 
-Biological Repeat 1: DDR1 (unsorted), DDR2 (BFP sorted) Biological Repeat 2: DDR3 (unsorted), DDR4 (BFP sorted) DDR library infected 293T cells after Puro selection: DDR5
+1.  Biological Repeat 1: DDR1 (unsorted), DDR2 (BFP sorted)
+
+2.  Biological Repeat 2: DDR3 (unsorted), DDR4 (BFP sorted)
+
+3.  DDR library infected 293T cells after Puro selection: DDR5
 
 #### *Amplicon sequencing*
 
