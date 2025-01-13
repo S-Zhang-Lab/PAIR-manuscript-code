@@ -101,28 +101,117 @@ python All_positions_mapping.py --input_file DDR1_unique_combinations_sorted.txt
                                  --whitelist_file /project/pathology/SiZhang_lab/shared/Active_Projects/UTSW25_CC_DDR/Sub_info/Final_oligos_withID.csv \
                                  --output_file DDR1_unique_combinations_sorted_mapped.txt
 
-python All_positions_mapping_HD1.py --input_file DDR1_unique_combinations_sorted.txt \
-                                 --whitelist_file /project/pathology/SiZhang_lab/shared/Active_Projects/UTSW25_CC_DDR/Sub_info/Final_oligos_withID.csv \
-                                 --output_file DDR1_unique_combinations_sorted_mapped_HD1.txt
 
+# mapping with kmer tolerance
+awk '$4 >= 20' DDR1_unique_combinations_sorted.txt > DDR1_unique_combinations_sorted_filtered.txt
+
+python kmer-mapping.py --input_file DDR1_unique_combinations_sorted_filtered.txt \
+                        --whitelist_file Whitelist_withID.csv \
+                        --output_file DDR1_unique_combinations_sorted_mapped_output_kmerHD1.csv \
+                        --tolerance 1
+
+python Final_collapse_HD1.py DDR1_unique_combinations_sorted_mapped_output_kmerHD1.csv Whitelist_withID.csv DDR1_Final_kmer_mapped_count_HD1.csv
+
+# all in one script
+python 01_Mapping.py --input_file DDR1_unique_combinations_sorted.txt \
+                     --whitelist_file Whitelist_withID.csv \
+                     --output_file DDR1_Final_kmer_mapped_count_HD1_T100.csv \
+                     --tolerance 1 \
+                     --count_threshold 100
+
+python 01_Mapping.py --input_file DDR1_unique_combinations_sorted.txt \
+                     --whitelist_file Whitelist_withID.csv \
+                     --output_file DDR1_Final_kmer_mapped_count_HD1_T50_kmer20.csv \
+                     --tolerance 1 \
+                     --count_threshold 50
+
+# repeat for DDR2, DDR3, DDR4, DDR5
 python All_positions_mapping.py --input_file DDR2_unique_combinations_sorted.txt \
                                  --whitelist_file /project/pathology/SiZhang_lab/shared/Active_Projects/UTSW25_CC_DDR/Sub_info/Final_oligos_withID.csv \
                                  --output_file DDR2_unique_combinations_sorted_mapped.txt
+
+python 01_Mapping.py --input_file DDR2_unique_combinations_sorted.txt \
+                     --whitelist_file Whitelist_withID.csv \
+                     --output_file DDR2_Final_kmer_mapped_count_HD1_T100.csv \
+                     --tolerance 1 \
+                     --count_threshold 100
+
+python 01_Mapping.py --input_file DDR2_unique_combinations_sorted.txt \
+                     --whitelist_file Whitelist_withID.csv \
+                     --output_file DDR2_Final_kmer_mapped_count_HD1_T50_kmer20.csv \
+                     --tolerance 1 \
+                     --count_threshold 50
 
 python All_positions_mapping.py --input_file DDR3_unique_combinations_sorted.txt \
                                  --whitelist_file /project/pathology/SiZhang_lab/shared/Active_Projects/UTSW25_CC_DDR/Sub_info/Final_oligos_withID.csv \
                                  --output_file DDR3_unique_combinations_sorted_mapped.txt
 
+python 01_Mapping.py --input_file DDR3_unique_combinations_sorted.txt \
+                     --whitelist_file Whitelist_withID.csv \
+                     --output_file DDR3_Final_kmer_mapped_count_HD1_T100.csv \
+                     --tolerance 1 \
+                     --count_threshold 100
+
+python 01_Mapping.py --input_file DDR3_unique_combinations_sorted.txt \
+                     --whitelist_file Whitelist_withID.csv \
+                     --output_file DDR3_Final_kmer_mapped_count_HD1_T50_kmer20.csv \
+                     --tolerance 1 \
+                     --count_threshold 50                    
+
 python All_positions_mapping.py --input_file DDR4_unique_combinations_sorted.txt \
                                  --whitelist_file /project/pathology/SiZhang_lab/shared/Active_Projects/UTSW25_CC_DDR/Sub_info/Final_oligos_withID.csv \
                                  --output_file DDR4_unique_combinations_sorted_mapped.txt
+
+python 01_Mapping.py --input_file DDR4_unique_combinations_sorted.txt \
+                     --whitelist_file Whitelist_withID.csv \
+                     --output_file DDR4_Final_kmer_mapped_count_HD1_T100.csv \
+                     --tolerance 1 \
+                     --count_threshold 100
+
+python 01_Mapping.py --input_file DDR4_unique_combinations_sorted.txt \
+                     --whitelist_file Whitelist_withID.csv \
+                     --output_file DDR4_Final_kmer_mapped_count_HD1_T50_kmer20.csv \
+                     --tolerance 1 \
+                     --count_threshold 50                             
 
 python All_positions_mapping.py --input_file DDR5_unique_combinations_sorted.txt \
                                  --whitelist_file /project/pathology/SiZhang_lab/shared/Active_Projects/UTSW25_CC_DDR/Sub_info/Final_oligos_withID.csv \
                                  --output_file DDR5_unique_combinations_sorted_mapped.txt
 
-# assemble final matrix
-python assemble_count_matrix.py --whitelist_file /project/pathology/SiZhang_lab/shared/Active_Projects/UTSW25_CC_DDR/Sub_info/Final_oligos_withID.csv \
-                                --output_file count_matrix.csv \
-                                --input_files DDR1_unique_combinations_sorted_mapped.txt DDR2_unique_combinations_sorted_mapped.txt DDR3_unique_combinations_sorted_mapped.txt DDR4_unique_combinations_sorted_mapped.txt DDR5_unique_combinations_sorted_mapped.txt
+python 01_Mapping.py --input_file DDR5_unique_combinations_sorted.txt \
+                     --whitelist_file Whitelist_withID.csv \
+                     --output_file DDR5_Final_kmer_mapped_count_HD1_T100.csv \
+                     --tolerance 1 \
+                     --count_threshold 100
 
+python 01_Mapping.py --input_file DDR5_unique_combinations_sorted.txt \
+                     --whitelist_file Whitelist_withID.csv \
+                     --output_file DDR5_Final_kmer_mapped_count_HD1_T50_kmer20.csv \
+                     --tolerance 1 \
+                     --count_threshold 50     
+
+# assemble final matrix
+python 02_assemble_count_matrix.py --whitelist_file /project/pathology/SiZhang_lab/shared/Active_Projects/UTSW25_CC_DDR/Sub_info/Final_oligos_withID.csv \
+                                   --output_file kmer_HD1_count_matrix.csv \
+                                   --input_files DDR1_Final_kmer_mapped_count_HD1_T100.csv DDR2_Final_kmer_mapped_count_HD1_T100.csv DDR3_Final_kmer_mapped_count_HD1_T100.csv DDR4_Final_kmer_mapped_count_HD1_T100.csv DDR5_Final_kmer_mapped_count_HD1_T100.csv
+
+
+python 02_assemble_count_matrix.py --whitelist_file /project/pathology/SiZhang_lab/shared/Active_Projects/UTSW25_CC_DDR/Sub_info/Final_oligos_withID.csv \
+                                   --output_file kmer20_HD1_count_matrix.csv \
+                                   --input_files DDR1_Final_kmer_mapped_count_HD1_T50_kmer20.csv DDR2_Final_kmer_mapped_count_HD1_T50_kmer20.csv DDR3_Final_kmer_mapped_count_HD1_T50_kmer20.csv DDR4_Final_kmer_mapped_count_HD1_T50_kmer20.csv DDR5_Final_kmer_mapped_count_HD1_T50_kmer20.csv
+
+# test signficance using MAGack. NOTE, the output file kmer20_HD1_count_matrix.csv should be formatted as the following based on Magack count table format. 
+mageck test -k kmer20_HD1_count_matrix_for_mageck.txt \
+    -t DDR2,DDR4 \
+    -c DDR1,DDR3 \
+    --norm-method total \
+    -n DDR_default 
+
+mageck test -k kmer20_HD1_count_matrix_for_mageck.txt \
+    -t DDR2,DDR4 \
+    -c DDR1,DDR3 \
+    --gene-test-fdr-threshold 0.25 \
+    --norm-method total \
+    -n DDR_fdr \
+    --adjust-method fdr \
+   
