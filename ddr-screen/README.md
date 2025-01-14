@@ -93,4 +93,10 @@ mageck test -k kmer20_HD1_count_matrix_for_mageck.txt \
 
 ### 03. DDR analysis in R
 
-{need to update}
+1.  [02_count_matrix_analysis.R](./Codes/02_count_matrix_analysis.R): a simple analysis of differences of counts of PAIR between unsorted and sorted cells.
+
+2.  [03_DE-seq2.R](./Codes/03_DE-seq2.R): DE-seq2 analysis of differentially changed PAIRs. We only focused on the row that contains \>3 non-zero counts.
+
+3.  [04_EdgeR.R](./Codes/04_EdgeR.R): edgeR analysis of differentially changed PAIRs.
+
+4.  [05_common_gene_analysis.R](./Codes/05_common_gene_analysis.R): We compare the DE PAIRs from tboth DE-seq and EdgeR package.
