@@ -1,6 +1,8 @@
 # PAIR-DDR
 
-Investigation of Transcriptome Interaction in DNA Repair Pathway by Programmable CRISPR Paired Sequencing
+<img src="/Misc/PAIR.png" width="180" height="200"/>
+
+Investigation of Transcriptome Interaction of DNA Repair Response (DDR) by Parallel Activation and Interference CRISPR with Sequencing (PAIR-seq)
 
 ### 01 Background
 
@@ -10,11 +12,11 @@ Systematically assay gene-gene interaction in DNA damage response by PAIR-seq
 
 #### *Organism*
 
-Homo sapiens
+293 FT cells (Homo sapiens)
 
-#### *Design of Dual crRNA cassette*
+#### *Design of Dual PAIR crRNA cassette (PAIR cassette*)
 
-U6-driven PAIR RNA cassette structure can be find here: <https://benchling.com/s/seq-SQ0Ur1pqXan8cwLW510g?m=slm-h2zfzbW6z9kpwVhFuXMc>
+U6-driven PAIR RNA cassette structure can be find here: <https://benchling.com/s/seq-SQ0Ur1pqXan8cwLW510g?m=slm-h2zfzbW6z9kpwVhFuXMc> and [pdf map](./Misc/PAIR22_POLD3_PK.pdf).
 
 The dual regulatory crRNA cassette is with the following structure:
 
@@ -36,7 +38,7 @@ The DNA oligo library was designed using [01_Lib_assemble.R](./Codes/01_Lib_asse
 
 #### *Experiment summary*
 
-293T PAIR cells (a stable cell line capable of expressing Cas13d and CRISPRa) are cultured in 10 cm dishes. The DDR library (comprising a total of 10,525 different PAIR RNAs, including NC) is packaged into lentivirus and used to infect 293T PAIR cells at a low MOI of 0.2. After 48 hours of infection, 10 µg/mL puromycin is added for drug selection, and the medium is replaced once the blank control cells have died. After 7 days of drug selection, the DDR-infected cells are split into three dishes, followed by transfection with SaCas9/sgRNA and a BFP DNA donor. 4 days post-transfection, flow cytometry is used to sort BFP+ cells, and different samples are harvested for library construction. "
+293T PAIR cells (a stable cell line capable of expressing Cas13d and CRISPRa) are cultured in 10 cm dishes. The DDR library (comprising a total of 10,525 different PAIR RNAs, including Non-targeting control) is packaged into lentivirus and used to infect 293T PAIR cells at a low MOI of 0.2. After 48 hours of infection, 10 µg/mL puromycin is added for drug selection, and the medium is replaced once the blank control cells have died. After 7 days of drug selection, the DDR-infected cells are split into three dishes, followed by transfection with SaCas9/sgRNA and a BFP DNA donor. 4 days post-transfection, flow cytometry is used to sort BFP+ cells, and different samples are harvested for library construction. "
 
 #### *Groups*
 
