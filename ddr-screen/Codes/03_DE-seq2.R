@@ -19,7 +19,7 @@ count_data <- count_data[rowSums(count_data == 0) < 3, ]
 # Define metadata with batch information
 col_data <- data.frame(
   sample = colnames(count_data),
-  condition = c("Control", "Treatment", "Control", "Treatment"),  # Define conditions
+  condition = c("Control", "Treatment", "Control", "Treatment"),  # Define conditions Control = BFP-, Treatment = BFP+ HDR
   batch = c("batch1", "batch1", "batch2", "batch2")               # Add batch information
 )
 rownames(col_data) <- col_data$sample
@@ -38,11 +38,23 @@ dds <- DESeq(dds)
 res <- results(dds)
 
 # Filter significant DE genes (adjusted p-value < X, |log2FoldChange| > Y)
-de_genes <- res[!is.na(res$padj) & res$padj < 0.001 & abs(res$log2FoldChange) > 17, ]
+de_genes <- res[!is.na(res$padj) & res$padj < 0.001 & abs(res$log2FoldChange) > 15, ]
 de_genes_df <- as.data.frame(de_genes)
 
 # Save significant DE genes
 write.csv(as.data.frame(de_genes), "./Results/DEseq2_Significant_DE_genes_with_batch.csv")
+
+# Order by decreasing log2FoldChange (upregulated)
+top_up <- de_genes[order(-de_genes$log2FoldChange), ][1:20, ]
+
+# Order by increasing log2FoldChange (downregulated)
+top_down <- de_genes[order(de_genes$log2FoldChange), ][1:20, ]
+
+# Combine top 20 in each direction
+top_genes <- rbind(top_up, top_down)
+
+# Ensure gene names match
+heatmap_subset <- heatmap_data[rownames(heatmap_data) %in% rownames(top_genes), ]
 
 # Extract normalized counts for heatmap
 normalized_counts <- counts(dds, normalized = TRUE)
@@ -51,7 +63,7 @@ normalized_counts <- counts(dds, normalized = TRUE)
 log_counts <- log2(normalized_counts + 1)
 
 # Filter DE genes for heatmap
-heatmap_data <- log_counts[rownames(de_genes), ]
+heatmap_data <- log_counts[rownames(heatmap_subset), ]
 
 # Prepare annotation data for columns
 annotation_col <- data.frame(
@@ -62,29 +74,42 @@ rownames(annotation_col) <- colnames(heatmap_data)  # Ensure row names match
 
 # Specify colors for annotation
 ann_colors = list(
-  Condition = c(Control = "grey", Treatment = "darkgreen"),
-  Batch = c(batch1 = "lightblue", batch2 = "lightcoral")
+  Condition = c(Control = "grey", Treatment = "blue"),
+  Batch = c(batch1 = "lightgreen", batch2 = "lightcoral")
 )
 
+# Reorder columns by condition: Control first, then Treatment
+control_first_order <- rownames(annotation_col)[annotation_col$Condition == "Control"]
+treatment_order <- rownames(annotation_col)[annotation_col$Condition == "Treatment"]
+ordered_cols <- c(control_first_order, treatment_order)
+
+# Reorder heatmap data and annotation accordingly
+heatmap_data <- heatmap_data[, ordered_cols]
+annotation_col <- annotation_col[ordered_cols, , drop = FALSE]
+
+# Generate PDF with pheatmap (disable column clustering to preserve order)
+pdf("./Figures/DEseq2_heatmap_PAIR_DE_genes_large.pdf", width = 10, height = 10) 
 pheatmap(
   heatmap_data,
   scale = "row",
   cluster_rows = TRUE,
-  cluster_cols = TRUE,
+  cluster_cols = FALSE,  # Disable to preserve your manual column order
   show_rownames = TRUE,
   show_colnames = TRUE,
   main = "Heatmap of Significant DE Genes (Batch Corrected)",
   annotation_col = annotation_col,
   annotation_colors = ann_colors
 )
+dev.off()
 
-# Generate volcano plot with top 10 gene labels
+
+# Generate volcano plot with top 20 gene labels
 volcano_data <- as.data.frame(res)
 
 # Add a column to identify significant genes
 volcano_data$significant <- !is.na(volcano_data$padj) & 
   volcano_data$padj < 0.001 & 
-  abs(volcano_data$log2FoldChange) > 10
+  abs(volcano_data$log2FoldChange) > 17
 
 # Sort the data by significance (-log10(padj)) and select the top 10 DE genes
 top_genes <- volcano_data %>%
@@ -113,7 +138,7 @@ ggplot(volcano_data, aes(x = log2FoldChange, y = -log10(padj))) +
   )
 
 # Save volcano plot
-ggsave("./Figures/DEseq2_Volcano_Plot_with_Batch.pdf", width = 8, height = 8)
+ggsave("./Figures/DEseq2_Volcano_Plot_with_Batch.pdf", width = 5, height = 5)
 ggsave("./Figures/DEseq2_Volcano_Plot_with_Batch_large.pdf", width = 20, height = 20)
 
 

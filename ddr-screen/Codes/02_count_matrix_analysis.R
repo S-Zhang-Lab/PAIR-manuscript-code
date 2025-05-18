@@ -49,7 +49,7 @@ write.csv(count_matrix, file = "./Results/PAIR_DDR_count_matrix.csv", row.names 
 TH12 <- 6
 TH34 <- 6
 
-# Identify differentially expressed rows
+# Identify differential expressed rows
 diff_genes_DDR1_DDR2 <- subset(count_matrix, abs(logFC_DDR1_DDR2) > TH12)
 diff_genes_DDR3_DDR4 <- subset(count_matrix, abs(logFC_DDR3_DDR4) > TH34)
 
