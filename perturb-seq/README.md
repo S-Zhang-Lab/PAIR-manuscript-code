@@ -8,7 +8,13 @@ This is the 2nd round of PAIR-perturb-seq experiment on DDR gene paired modulati
 
 ## Groups and HTOs used
 
-Two groups each of them contains 3 biological replicates: group #1 is RNP/sgRNA transfected group, label with TotalSeq™-C0254,C0255,C0256 separately. #2 is RNP transfected control group, lable with TotalSeq™-C0257,C0258,C0259 separately.
+Two groups each of them contains 3 biological replicates:
+
+Group #1 is RNP/sgRNA transfected group, label with TotalSeq™-C0254,C0255,C0256 separately.
+
+Group #2 is RNP transfected control group, label with TotalSeq™-C0257,C0258,C0259 separately.
+
+TotalSeq antibody HTO barcode index sequences can be found on BioLegend website.
 
 ## Genome
 
