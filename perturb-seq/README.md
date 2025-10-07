@@ -41,3 +41,7 @@ Box: <https://utsw.box.com/s/msqf44ib1ozl3jw2w5skw3be7d6kinqn>
 <https://benchling.com/s/seq-SQx0GzDjTDG89LR1RKFs?m=slm-wvbEzq2eRuiNKKWFKc3e>
 
 ![](info/PAIR_lib_structure.png)
+
+## HTOs and PAIRs information
+
+Please refer to xls info sheet [here](/info/250918_information.xlsx).
