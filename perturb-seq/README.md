@@ -35,3 +35,9 @@ NovaSeq X Plus (PE150) on one lane
 ## RAW data location
 
 Box: <https://utsw.box.com/s/msqf44ib1ozl3jw2w5skw3be7d6kinqn>
+
+## PAIR RNA library structure
+
+<https://benchling.com/s/seq-SQx0GzDjTDG89LR1RKFs?m=slm-wvbEzq2eRuiNKKWFKc3e>
+
+![](info/PAIR_lib_structure.png)
