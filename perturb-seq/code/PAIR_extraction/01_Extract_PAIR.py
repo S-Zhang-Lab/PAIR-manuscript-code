@@ -1,5 +1,6 @@
 import gzip
-import re
+# import re
+import regex
 from Bio.Seq import Seq
 import argparse
 from datetime import datetime
@@ -41,7 +42,11 @@ def extract_matched_reads(input_r1, input_r2, output_r1, output_r2, r1_pattern, 
             total_reads += 1
 
             # Check for matching patterns in R1 and R2
-            if re.match(f".{{28}}{re.escape(r1_pattern)}", r1_lines[1][:42]) and re.search(r2_pattern, r2_lines[1]):
+            # Allowing up to 1 mismatch using regex module
+            if (
+                regex.match(f".{{28}}(?:{regex.escape(r1_pattern)}){{e<=1}}", r1_lines[1][:42])
+                and regex.search(f"(?:{regex.escape(r2_pattern)}){{e<=1}}", r2_lines[1])
+            ):
                 matched_reads += 1
                 write_buffer_r1.append('\n'.join(r1_lines) + '\n')
                 write_buffer_r2.append('\n'.join(r2_lines) + '\n')
@@ -102,14 +107,18 @@ def process_reads(input_r1, input_r2, output_table, log_file):
             r1_seq = r1_lines[1]
             r2_seq = r2_lines[1]
 
-            if re.match(f".{{28}}{re.escape(r1_pattern)}", r1_seq[:42]) and re.search(r2_pattern, r2_seq):
+            # Allowing up to 1 mismatch using regex module
+            if (
+                regex.match(f".{{28}}(?:{regex.escape(r1_pattern)}){{e<=1}}", r1_lines[1][:42])
+                and regex.search(f"(?:{regex.escape(r2_pattern)}){{e<=1}}", r2_lines[1])
+            ):
                 # Extract components
                 cell_bc = r1_seq[:16]
                 umi = r1_seq[16:28]
                 crispr_g_rna_start = r1_seq.find(r1_pattern) + len(r1_pattern)
                 crispr_g_rna = r1_seq[crispr_g_rna_start:crispr_g_rna_start + 20]
                 casrx_crrna_start = r2_seq.find(r2_pattern) + len(r2_pattern)
-                casrx_crrna = r2_seq[casrx_crrna_start:casrx_crrna_start + 23]
+                casrx_crrna = r2_seq[casrx_crrna_start:casrx_crrna_start + 23] # Have questions about the length 23 or 22?
                 casrx_crrna_rc = str(Seq(casrx_crrna).reverse_complement())
 
                 out_table.write(f"{cell_bc}\t{umi}\t{crispr_g_rna}\t{casrx_crrna_rc}\n")
@@ -132,7 +141,7 @@ def main():
 
     args = parser.parse_args()
 
-    log_file = "01_Extract_PAIR.log"
+    log_file = "01_Extract_PAIR_mismatch01.log"
 
     log_message("Starting extraction of matched reads...", log_file)
     extract_matched_reads(args.input_r1, args.input_r2, args.output_r1, args.output_r2, 
