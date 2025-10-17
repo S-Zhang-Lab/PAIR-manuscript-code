@@ -13,9 +13,9 @@ HTO_TN_A3-SI_TN_A3_2333FLLT3,/afs/crc.nd.edu/group/StatDataMine/dm008/Dailin_Gan
 
 [samples]
 sample_id,cmo_ids,description
-RNP1,C0254,RNP_sgRNA_rep1
-RNP2,C0255,RNP_sgRNA_rep2
-RNP3,C0256,RNP_sgRNA_rep3
-Ctl1,C0257,Control_rep1
-Ctl2,C0258,Control_rep2
-Ctl3,C0259,Control_rep3
+RNP1_cmo,C0254_cmo,RNP_sgRNA_rep1
+RNP2_cmo,C0255_cmo,RNP_sgRNA_rep2
+RNP3_cmo,C0256_cmo,RNP_sgRNA_rep3
+Ctl1_cmo,C0257_cmo,Control_rep1
+Ctl2_cmo,C0258_cmo,Control_rep2
+Ctl3_cmo,C0259_cmo,Control_rep3
