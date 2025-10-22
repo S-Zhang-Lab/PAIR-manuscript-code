@@ -81,7 +81,8 @@ def process_reads(input_r1, input_r2, output_table, log_file):
     Writes results incrementally to minimize memory usage while maintaining detailed logging.
     """
     r1_pattern = "TTTCTTATATGGGG"
-    r2_pattern = "TTAAAGCGTTTCAAACCCCGACCAGTTGGTAGGGGTTTACTTG"
+    # r2_pattern = "TTAAAGCGTTTCAAACCCCGACCAGTTGGTAGGGGTTTACTTG"
+    r2_pattern = "TTGCTAGGACCGGCCTTAAAGC" # use the CS1 region pattern to capture Cas13d crRNA sequences
 
     processed_reads = 0
     matched_records = 0  # Initialize matched_records
@@ -117,8 +118,8 @@ def process_reads(input_r1, input_r2, output_table, log_file):
                 umi = r1_seq[16:28]
                 crispr_g_rna_start = r1_seq.find(r1_pattern) + len(r1_pattern)
                 crispr_g_rna = r1_seq[crispr_g_rna_start:crispr_g_rna_start + 20]
-                casrx_crrna_start = r2_seq.find(r2_pattern) + len(r2_pattern)
-                casrx_crrna = r2_seq[casrx_crrna_start:casrx_crrna_start + 23] # Have questions about the length 23 or 22?
+                casrx_crrna_start = r2_seq.find(r2_pattern) + len(r2_pattern) + 36 # 36 is the length of RfxCas13d DR36 region
+                casrx_crrna = r2_seq[casrx_crrna_start:casrx_crrna_start + 23] # Have questions about the length 23 or 22? Ans: 23
                 casrx_crrna_rc = str(Seq(casrx_crrna).reverse_complement())
 
                 out_table.write(f"{cell_bc}\t{umi}\t{crispr_g_rna}\t{casrx_crrna_rc}\n")
@@ -145,7 +146,7 @@ def main():
 
     log_message("Starting extraction of matched reads...", log_file)
     extract_matched_reads(args.input_r1, args.input_r2, args.output_r1, args.output_r2, 
-                          "TTTCTTATATGGGG", "TTAAAGCGTTTCAAACCCCGACCAGTTGGTAGGGGTTTACTTG", log_file)
+                          "TTTCTTATATGGGG", "TTGCTAGGACCGGCCTTAAAGC", log_file)
 
     log_message("Starting processing of matched reads...", log_file)
     process_reads(args.output_r1, args.output_r2, args.output_table, log_file)
