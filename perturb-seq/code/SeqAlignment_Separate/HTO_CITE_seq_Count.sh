@@ -7,7 +7,7 @@
 
 module load conda
 
-conda activate citeseq
+conda activate citeseq37 # python version: 3.7. CITE-seq-Count does not work with python version 3.8 or higher.
 
 
 CITE-seq-Count \
