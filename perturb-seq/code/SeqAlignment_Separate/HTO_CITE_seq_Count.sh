@@ -1,7 +1,7 @@
 #!/bin/bash
 #$ -M dgan@nd.edu
 #$ -m abe
-#$ -pe smp 24 #reserving 24 cores
+#$ -pe smp 48 #reserving 48 cores
 #$ -q long
 #$ -N HTO_lib
 
@@ -18,5 +18,6 @@ CITE-seq-Count \
   -cbl 16 \
   -umif 17 \
   -umil 28 \
-  -cells 40000 \
+  -wl /afs/crc.nd.edu/group/StatDataMine/dm008/Dailin_Gan/Siyuan/PAIR-perturb-seq_2025-10/code/SeqAlignment_Separate/mRNA_barcodes.csv \
+  -T 48 \
   -o /afs/crc.nd.edu/group/StatDataMine/dm008/Dailin_Gan/Siyuan/PAIR-perturb-seq_2025-10/HTO_Output
