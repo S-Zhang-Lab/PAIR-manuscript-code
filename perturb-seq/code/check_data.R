@@ -5,9 +5,9 @@ library(dplyr)
 library(Matrix)
 
 # Specify file paths
-barcodes_file <- "./data/HTO_raw/barcodes.tsv.gz"
-features_file <- "./data/HTO_raw/features.tsv.gz"
-matrix_file   <- "./data/HTO_raw/matrix.mtx.gz"
+barcodes_file <- "./data/HTO_raw_Run2/barcodes.tsv.gz"
+features_file <- "./data/HTO_raw_Run2/features.tsv.gz"
+matrix_file   <- "./data/HTO_raw_Run2/matrix.mtx.gz"
 
 # Read the matrix (sparse format)
 mat <- readMM(matrix_file)
@@ -26,7 +26,15 @@ colnames(mat) <- barcodes[, 1]   # cell barcodes
 # Check dimensions
 dim(mat)
 
-mat_sub <- mat[, 1:100] %>% as.matrix()
+rownames_interested <- c("C0254_cmo", "C0255_cmo", "C0256_cmo", 
+                         "C0257_cmo", "C0258_cmo", "C0259_cmo",
+                         "C0254_hto", "C0255_hto", "C0256_hto",
+                         "C0257_hto", "C0258_hto", "C0259_hto")
+
+mat_sub <- mat[rownames_interested, ]
+
+
+
 
 
 barcode <- read.csv("./code/PAIR_extraction/mRNA_barcodes.csv", header = FALSE)
