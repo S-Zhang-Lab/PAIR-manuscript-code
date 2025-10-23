@@ -3,7 +3,7 @@
 #$ -m abe
 #$ -pe smp 48 #reserving 48 cores
 #$ -q long
-#$ -N HTO_lib
+#$ -N HTO_NoWL
 
 module load conda
 
@@ -18,7 +18,6 @@ CITE-seq-Count \
   -cbl 16 \
   -umif 17 \
   -umil 28 \
-  -wl /afs/crc.nd.edu/group/StatDataMine/dm008/Dailin_Gan/Siyuan/PAIR-perturb-seq_2025-10/code/SeqAlignment_Separate/mRNA_barcodes.csv \
   -cells 30000 \
   -T 48 \
-  -o /afs/crc.nd.edu/group/StatDataMine/dm008/Dailin_Gan/Siyuan/PAIR-perturb-seq_2025-10/HTO_Output
+  -o /afs/crc.nd.edu/group/StatDataMine/dm008/Dailin_Gan/Siyuan/PAIR-perturb-seq_2025-10/HTO_Output_NoWL
