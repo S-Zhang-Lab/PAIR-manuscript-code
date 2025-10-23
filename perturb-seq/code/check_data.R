@@ -27,3 +27,15 @@ colnames(mat) <- barcodes[, 1]   # cell barcodes
 dim(mat)
 
 mat_sub <- mat[, 1:100] %>% as.matrix()
+
+
+barcode <- read.csv("./code/PAIR_extraction/mRNA_barcodes.csv", header = FALSE)
+barcode <- cbind("GRCh38", barcode)
+write.table(
+  barcode,
+  file = "./code/PAIR_extraction/mRNA_barcodes_with_prefix.csv",
+  sep = ",",
+  quote = FALSE,
+  row.names = FALSE,
+  col.names = FALSE
+)
