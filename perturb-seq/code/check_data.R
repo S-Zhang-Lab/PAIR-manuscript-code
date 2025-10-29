@@ -5,9 +5,9 @@ library(dplyr)
 library(Matrix)
 
 # Specify file paths
-barcodes_file <- "./data/HTO_raw_Run2/barcodes.tsv.gz"
-features_file <- "./data/HTO_raw_Run2/features.tsv.gz"
-matrix_file   <- "./data/HTO_raw_Run2/matrix.mtx.gz"
+barcodes_file <- "./data/PAIR_output/PAIR_matched_sparse_UMI_matrix_rows.txt"
+features_file <- "./data/PAIR_output/PAIR_matched_sparse_UMI_matrix_columns.txt"
+matrix_file   <- "./data/PAIR_output/PAIR_matched_sparse_UMI_matrix.mtx"
 
 # Read the matrix (sparse format)
 mat <- readMM(matrix_file)
@@ -17,14 +17,39 @@ features <- read.delim(features_file, header = FALSE, stringsAsFactors = FALSE)
 barcodes <- read.delim(barcodes_file, header = FALSE, stringsAsFactors = FALSE)
 
 # Assign row and column names
-rownames(mat) <- features[, 1]   # gene IDs
-colnames(mat) <- barcodes[, 1]   # cell barcodes
+rownames(mat) <- barcodes[, 1]   # gene IDs
+colnames(mat) <- features[, 1]   # cell barcodes
 
 # Convert to a dense matrix if desired (warning: may use a lot of memory)
 # mat_dense <- as.matrix(mat)
 
 # Check dimensions
 dim(mat)
+
+
+mat <- as.matrix(mat)
+
+assigned_tag <- apply(mat, 1, function(x) {
+  if (all(x == 0)) {
+    return(NA)  # no tag detected
+  } else {
+    return(colnames(mat)[which.max(x)])
+  }
+})
+
+# Combine with cell barcodes (rownames)
+tag_assignment <- data.frame(
+  cell_barcode = rownames(mat),
+  assigned_tag = assigned_tag,
+  stringsAsFactors = FALSE
+)
+
+head(tag_assignment)
+
+
+
+
+
 
 rownames_interested <- c("C0254_cmo", "C0255_cmo", "C0256_cmo", 
                          "C0257_cmo", "C0258_cmo", "C0259_cmo",
