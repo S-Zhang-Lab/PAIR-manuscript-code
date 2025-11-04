@@ -3,6 +3,7 @@ import gzip
 import regex
 from Bio.Seq import Seq
 import argparse
+import pandas as pd
 from datetime import datetime
 
 
@@ -87,6 +88,10 @@ def process_reads(input_r1, input_r2, output_table, whitelist, log_file):
     processed_reads = 0
     matched_records = 0  # Initialize matched_records
 
+    whitelist = pd.read_csv(whitelist)
+    crispra_names = whitelist['CRISPRa_name'].tolist()
+    casrx_names = whitelist['CasRx_name'].tolist()
+
     with gzip.open(input_r1, 'rt') as r1, gzip.open(input_r2, 'rt') as r2, open(output_table, 'w') as out_table:
         # Write header to the output file
         out_table.write("CellBC\tUMI\tCRISPRa_gRNA\tCasRx_crRNA\n")
@@ -112,12 +117,32 @@ def process_reads(input_r1, input_r2, output_table, whitelist, log_file):
             cell_bc = r1_seq[:16]
             umi = r1_seq[16:28]
             crispr_g_rna_start = r1_seq.find(r1_pattern) + len(r1_pattern)
-            crispr_g_rna = r1_seq[crispr_g_rna_start:crispr_g_rna_start + 20]
-            casrx_crrna_start = r2_seq.find(r2_pattern) + len(r2_pattern) + 36 # 36 is the length of RfxCas13d DR36 region
-            casrx_crrna = r2_seq[casrx_crrna_start:casrx_crrna_start + 23] # Have questions about the length 23 or 22? Ans: 23
-            casrx_crrna_rc = str(Seq(casrx_crrna).reverse_complement())
+            r1_seq_crop = r1_seq[crispr_g_rna_start:]
 
-            out_table.write(f"{cell_bc}\t{umi}\t{crispr_g_rna}\t{casrx_crrna_rc}\n")
+            crispr_match = next((seq for seq in crispra_names if seq in r1_seq_crop), None)
+
+            if crispr_match:
+                crispr_g_rna = crispr_match
+            else:
+                # Default to N's of same length
+                n_seq = "N" * len(crispra_names[0])
+                crispr_g_rna = n_seq
+
+
+            casrx_crrna_start = r2_seq.find(r2_pattern) + len(r2_pattern) + 36 # 36 is the length of RfxCas13d DR36 region
+            r2_seq_crop = r2_seq[casrx_crrna_start:]
+            r2_seq_crop_rc = str(Seq(r2_seq_crop).reverse_complement())
+
+            casrx_match = next((seq for seq in casrx_names if seq in r2_seq_crop_rc), None)
+            
+            if casrx_match:
+                casrx_crrna = casrx_match
+            else:
+                # Default to N's of same length
+                n_seq = "N" * len(casrx_names[0])
+                casrx_crrna = n_seq
+
+            out_table.write(f"{cell_bc}\t{umi}\t{crispr_g_rna}\t{casrx_crrna}\n")
             matched_records += 1
 
             # Flush every 100,000 matched records
