@@ -75,7 +75,7 @@ def extract_matched_reads(input_r1, input_r2, output_r1, output_r2, r1_pattern, 
     else:
         log_message("No reads processed.", log_file)
 
-def process_reads(input_r1, input_r2, output_table, log_file):
+def process_reads(input_r1, input_r2, output_table, whitelist, log_file):
     """
     Process matched reads and extract CellBC, UMI, CRISPRa_gRNA, and CasRx_crRNA.
     Writes results incrementally to minimize memory usage while maintaining detailed logging.
@@ -108,27 +108,22 @@ def process_reads(input_r1, input_r2, output_table, log_file):
             r1_seq = r1_lines[1]
             r2_seq = r2_lines[1]
 
-            # Allowing up to 1 mismatch using regex module
-            if (
-                regex.match(f".{{28}}(?:{regex.escape(r1_pattern)}){{e<=1}}", r1_lines[1][:42])
-                and regex.search(f"(?:{regex.escape(r2_pattern)}){{e<=1}}", r2_lines[1])
-            ):
-                # Extract components
-                cell_bc = r1_seq[:16]
-                umi = r1_seq[16:28]
-                crispr_g_rna_start = r1_seq.find(r1_pattern) + len(r1_pattern)
-                crispr_g_rna = r1_seq[crispr_g_rna_start:crispr_g_rna_start + 20]
-                casrx_crrna_start = r2_seq.find(r2_pattern) + len(r2_pattern) + 36 # 36 is the length of RfxCas13d DR36 region
-                casrx_crrna = r2_seq[casrx_crrna_start:casrx_crrna_start + 23] # Have questions about the length 23 or 22? Ans: 23
-                casrx_crrna_rc = str(Seq(casrx_crrna).reverse_complement())
+            # Extract components
+            cell_bc = r1_seq[:16]
+            umi = r1_seq[16:28]
+            crispr_g_rna_start = r1_seq.find(r1_pattern) + len(r1_pattern)
+            crispr_g_rna = r1_seq[crispr_g_rna_start:crispr_g_rna_start + 20]
+            casrx_crrna_start = r2_seq.find(r2_pattern) + len(r2_pattern) + 36 # 36 is the length of RfxCas13d DR36 region
+            casrx_crrna = r2_seq[casrx_crrna_start:casrx_crrna_start + 23] # Have questions about the length 23 or 22? Ans: 23
+            casrx_crrna_rc = str(Seq(casrx_crrna).reverse_complement())
 
-                out_table.write(f"{cell_bc}\t{umi}\t{crispr_g_rna}\t{casrx_crrna_rc}\n")
-                matched_records += 1
+            out_table.write(f"{cell_bc}\t{umi}\t{crispr_g_rna}\t{casrx_crrna_rc}\n")
+            matched_records += 1
 
-                # Flush every 100,000 matched records
-                if matched_records % 100000 == 0:
-                    out_table.flush()
-                    log_message(f"Flushed {matched_records} matched records to the table so far...", log_file)
+            # Flush every 100,000 matched records
+            if matched_records % 100000 == 0:
+                out_table.flush()
+                log_message(f"Flushed {matched_records} matched records to the table so far...", log_file)
 
         log_message(f"Processing of matched reads complete. Total matched reads processed: {processed_reads}", log_file)
 
@@ -139,6 +134,7 @@ def main():
     parser.add_argument("--output_r1", required=True, help="Output R1 matched FASTQ file (gzipped).")
     parser.add_argument("--output_r2", required=True, help="Output R2 matched FASTQ file (gzipped).")
     parser.add_argument("--output_table", required=True, help="Output table with extracted data.")
+    parser.add_argument("--whitelist", required=True, help="sgRNA whitelist file.")
 
     args = parser.parse_args()
 
@@ -149,7 +145,7 @@ def main():
                           "TTTCTTATATGGGG", "TTGCTAGGACCGGCCTTAAAGC", log_file)
 
     log_message("Starting processing of matched reads...", log_file)
-    process_reads(args.output_r1, args.output_r2, args.output_table, log_file)
+    process_reads(args.output_r1, args.output_r2, args.output_table, args.whitelist, log_file)
 
     log_message("Processing complete. Data saved to output files.", log_file)
 
