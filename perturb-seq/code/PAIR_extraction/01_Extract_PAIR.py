@@ -1,5 +1,5 @@
 import gzip
-# import re
+import re
 import regex
 from Bio.Seq import Seq
 import argparse
@@ -44,10 +44,11 @@ def extract_matched_reads(input_r1, input_r2, output_r1, output_r2, r1_pattern, 
 
             # Check for matching patterns in R1 and R2
             # Allowing up to 1 mismatch using regex module
-            if (
-                regex.match(f".{{28}}(?:{regex.escape(r1_pattern)}){{e<=1}}", r1_lines[1][:42])
-                and regex.search(f"(?:{regex.escape(r2_pattern)}){{e<=1}}", r2_lines[1])
-            ):
+            # if (
+            #     regex.match(f".{{28}}(?:{regex.escape(r1_pattern)}){{e<=1}}", r1_lines[1][:42])
+            #     and regex.search(f"(?:{regex.escape(r2_pattern)}){{e<=1}}", r2_lines[1])
+            # ):
+            if re.match(f".{{28}}{re.escape(r1_pattern)}", r1_lines[1][:42]) and re.search(r2_pattern, r2_lines[1]):
                 matched_reads += 1
                 write_buffer_r1.append('\n'.join(r1_lines) + '\n')
                 write_buffer_r2.append('\n'.join(r2_lines) + '\n')
@@ -89,8 +90,8 @@ def process_reads(input_r1, input_r2, output_table, whitelist, log_file):
     matched_records = 0  # Initialize matched_records
 
     whitelist = pd.read_csv(whitelist)
-    crispra_names = whitelist['CRISPRa_name'].tolist()
-    casrx_names = whitelist['CasRx_name'].tolist()
+    crispra_names = whitelist['CRISPRa'].tolist()
+    casrx_names = whitelist['CasRx'].tolist()
 
     with gzip.open(input_r1, 'rt') as r1, gzip.open(input_r2, 'rt') as r2, open(output_table, 'w') as out_table:
         # Write header to the output file
@@ -116,31 +117,32 @@ def process_reads(input_r1, input_r2, output_table, whitelist, log_file):
             # Extract components
             cell_bc = r1_seq[:16]
             umi = r1_seq[16:28]
-            crispr_g_rna_start = r1_seq.find(r1_pattern) + len(r1_pattern)
-            r1_seq_crop = r1_seq[crispr_g_rna_start:]
+            #crispr_g_rna_start = r1_seq.find(r1_pattern) + len(r1_pattern)
+            # r1_seq_crop = r1_seq[crispr_g_rna_start:]
 
-            crispr_match = next((seq for seq in crispra_names if seq in r1_seq_crop), None)
+            crispr_match = next((seq for seq in crispra_names if seq in r1_seq), None)
 
             if crispr_match:
                 crispr_g_rna = crispr_match
             else:
-                # Default to N's of same length
-                n_seq = "N" * len(crispra_names[0])
-                crispr_g_rna = n_seq
+                crispr_g_rna_start = r1_seq.find(r1_pattern) + len(r1_pattern)
+                crispr_g_rna = r1_seq[crispr_g_rna_start:crispr_g_rna_start + 20]
 
 
-            casrx_crrna_start = r2_seq.find(r2_pattern) + len(r2_pattern) + 36 # 36 is the length of RfxCas13d DR36 region
-            r2_seq_crop = r2_seq[casrx_crrna_start:]
-            r2_seq_crop_rc = str(Seq(r2_seq_crop).reverse_complement())
+            # casrx_crrna_start = r2_seq.find(r2_pattern) + len(r2_pattern) + 36 # 36 is the length of RfxCas13d DR36 region
+            # r2_seq_crop = r2_seq[casrx_crrna_start:]
+            # r2_seq_crop_rc = str(Seq(r2_seq_crop).reverse_complement())
+            r2_seq_rc = str(Seq(r2_seq).reverse_complement())
 
-            casrx_match = next((seq for seq in casrx_names if seq in r2_seq_crop_rc), None)
-            
+            casrx_match = next((seq for seq in casrx_names if seq in r2_seq_rc), None)
+
             if casrx_match:
                 casrx_crrna = casrx_match
             else:
-                # Default to N's of same length
-                n_seq = "N" * len(casrx_names[0])
-                casrx_crrna = n_seq
+                casrx_crrna_start = r2_seq.find(r2_pattern) + len(r2_pattern) + 36 # 36 is the length of RfxCas13d DR36 region
+                casrx_crrna = r2_seq[casrx_crrna_start:casrx_crrna_start + 23]
+                casrx_crrna = str(Seq(casrx_crrna).reverse_complement())
+
 
             out_table.write(f"{cell_bc}\t{umi}\t{crispr_g_rna}\t{casrx_crrna}\n")
             matched_records += 1
