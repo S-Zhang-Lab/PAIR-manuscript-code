@@ -44,9 +44,25 @@ tag_assignment <- data.frame(
   stringsAsFactors = FALSE
 )
 
-head(tag_assignment)
+hto_tab <- read.csv("./data/mRNA_HTO_Raw_Counts/tag_calls_per_cell.csv", 
+                    header = TRUE)
+rownames(hto_tab) <- sub("-1$", "", hto_tab$cell_barcode)
 
+overlap_bc <- intersect(rownames(tag_assignment),
+                        rownames(hto_tab))
 
+tag_assignment_sub <- tag_assignment[overlap_bc, ]
+hto_tab_sub <- hto_tab[overlap_bc, ]
+
+hto_pair_tab <- cbind(tag_assignment_sub,
+                     hto_tab_sub)
+
+# Initialize treatment column as NA
+hto_pair_tab$treatment <- NA
+
+# Assign treatments by tag
+hto_pair_tab$treatment[hto_pair_tab$feature_call %in% c("C0255_cmo", "C0256_cmo")] <- "RNP"
+hto_pair_tab$treatment[hto_pair_tab$feature_call == "C0257_cmo"] <- "CTRL"
 
 
 
