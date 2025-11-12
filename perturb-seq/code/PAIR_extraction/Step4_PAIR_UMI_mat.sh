@@ -11,6 +11,6 @@ source /afs/crc.nd.edu/group/StatDataMine/dm008/Dailin_Gan/Siyuan/PAIR-perturb-s
 DATA_DIR=/afs/crc.nd.edu/group/StatDataMine/dm008/Dailin_Gan/Siyuan/PAIR-perturb-seq_2025-10
 
 python 04_Generate_PAIR_UMI_matrix.py \
-    -i ${DATA_DIR}/PAIR_output/PAIR_matched_extracted_data_table_CellBC.PAIR.mapped_2000000.txt \
-    -s ${DATA_DIR}/PAIR_output/PAIR_matched_sparse_UMI_matrix_2000000 \
-    -f ${DATA_DIR}/PAIR_output/PAIR_matched_frequency_2000000.txt
+    -i ${DATA_DIR}/PAIR_output/PAIR_matched_extracted_data_table_CellBC.PAIR.mapped.txt \
+    -s ${DATA_DIR}/PAIR_output/PAIR_matched_sparse_UMI_matrix \
+    -f ${DATA_DIR}/PAIR_output/PAIR_matched_frequency.txt
