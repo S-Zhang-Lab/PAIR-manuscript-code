@@ -6,6 +6,7 @@ library(Seurat)
 library(qs)
 library(ggplot2)
 library(biomaRt)
+library(Matrix)
 
 seu <- qread("./data/raw_seu_with_hto_pair_tags.qs")
 # ==== convert Ensembl to gene symbols ====
@@ -56,7 +57,7 @@ seu[["percent.mt"]] <- PercentageFeatureSet(seu, pattern = "^MT-")
 seu[["percent.ribo"]] <- PercentageFeatureSet(seu, pattern = "^RPL|^RPS")
 
 q <- VlnPlot(seu, features = c("nFeature_RNA", "nCount_RNA", "percent.mt", "percent.ribo"), ncol = 4)
-ggsave("./res/2025_1112/quality_metrics_before_qc.png", plot = q, width = 12, height = 4)
+ggsave("./res/2025_1113/quality_metrics_before_qc.png", plot = q, width = 12, height = 4)
 
 seu <- NormalizeData(seu, normalization.method = "LogNormalize", scale.factor = 1e4)
 
@@ -67,7 +68,7 @@ seu <- ScaleData(seu, features = rownames(seu))
 # PCA
 seu <- RunPCA(seu, features = VariableFeatures(seu))
 q <- ElbowPlot(seu)
-ggsave("./res/2025_1112/ElbowPlot.png", plot = q, width = 6, height = 4)
+ggsave("./res/2025_1113/ElbowPlot.png", plot = q, width = 6, height = 4)
 
 dims_use <- 1:20
 
@@ -76,20 +77,22 @@ seu <- FindClusters(seu, resolution = 0.4)
 
 seu <- RunUMAP(seu, dims = dims_use)
 
+qsave(seu, "./data/seu_prep.qs")
+
 # ==== umap plots ====
 meta <- seu@meta.data
 q <- DimPlot(seu, reduction = "umap", group.by = "treatment", pt.size = 0.5)
-ggsave("./res/2025_1112/umap_treatment.png", plot = q, width = 5, height = 4)
+ggsave("./res/2025_1113/umap_treatment.png", plot = q, width = 5, height = 4)
 
 q <- DimPlot(seu, reduction = "umap", group.by = "assigned_tag", pt.size = 0.5)
-ggsave("./res/2025_1112/umap_assigned_tag.png", plot = q, width = 7, height = 4)
+ggsave("./res/2025_1113/umap_assigned_tag.png", plot = q, width = 7, height = 4)
 
 q <- DimPlot(seu, reduction = "umap", group.by = "seurat_clusters", pt.size = 0.5)
-ggsave("./res/2025_1112/umap_seurat_clusters.png", plot = q, width = 5, height = 4)
+ggsave("./res/2025_1113/umap_seurat_clusters.png", plot = q, width = 5, height = 4)
 
 # ==== umap plots for chosen PAIR====
 tags_to_keep <- unique(meta$assigned_tag)  # replace with actual tags of interest
-outdir <- "./res/2025_1112/"
+outdir <- "./res/2025_1113/"
 for (tag in tags_to_keep) {
   
   q <- DimPlot(
