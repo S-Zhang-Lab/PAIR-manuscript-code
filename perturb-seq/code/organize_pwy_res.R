@@ -69,7 +69,7 @@ venn_regions <- function(A, B, C) {
 
 
 treatments <- c("CTRL", "RNP")
-treatment <- "CTRL"
+treatment <- "RNP"
 
 
 # ==== NBN_DNPKcs ====
@@ -218,24 +218,27 @@ write.csv(regions_df,
 
 
 # ==== NBN_53BP1 ====
+NT_53BP1 <- read.csv(paste0("./res/2025_1113/pwy_results_", treatment, "/NT_53BP1_over_NT_NT_c2.csv"))
+NT_53BP1 <- NT_53BP1$pathway
 NBN_53BP1 <- read.csv(paste0("./res/2025_1113/pwy_results_", treatment, "/NBN_53BP1_over_NT_NT_c2.csv"))
 NBN_53BP1 <- NBN_53BP1$pathway
 
 venn_list <- list(
   NBN_NT = NBN_NT,
+  NT_53BP1 = NT_53BP1,
   NBN_53BP1 = NBN_53BP1
 )
 
 venn.plot <- venn.diagram(
   x = venn_list,
   filename = NULL,               # draw to R instead of a file
-  fill = c("#A0CBE8", "#76B7B2"),
+  fill = c("#A0CBE8", "#F28E2B", "#76B7B2"),
   alpha = 0.6,
   cex = 1.5,
   cat.cex = 1.5,
   lwd = 2,
-  cat.pos = c(-20, 0),
-  cat.dist = c(0.05, 0.05)
+  cat.pos = c(-20, 20, 0),
+  cat.dist = c(0.05, 0.05, 0.05)
 )
 
 png(paste0("./res/2025_1113/organize_pwy_", treatment, "/venn_NBN_53BP1.png"),
@@ -245,7 +248,7 @@ grid::grid.draw(venn.plot)
 dev.off()
 
 
-regions <- venn_regions_2(NBN_NT, NBN_53BP1)
+regions <- venn_regions(NBN_NT, NT_53BP1, NBN_53BP1)
 # Determine max length among all regions
 max_len <- max(lengths(regions))
 
