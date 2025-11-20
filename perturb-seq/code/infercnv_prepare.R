@@ -10,12 +10,22 @@ library(Matrix)
 # Import raw data and metadata----
 scRNA_seq <- qread("./data/seu_prep.qs")
 meta_data <- scRNA_seq@meta.data
-Idents(scRNA_seq) <- "treatment"
 
-seu_RNP <- subset(scRNA_seq, subset = treatment == "RNP")
+seu_sub <- subset(
+  scRNA_seq,
+  subset = (
+    treatment == "RNP" |
+      (treatment == "CTRL" & assigned_tag == "NT_CRISPRa_NT_CasRx")
+  )
+)
 
-expr_mat <- GetAssayData(seu_RNP, slot = "data")
-meta <- seu_RNP@meta.data
+meta <- seu_sub@meta.data
+meta$treat_PAIR <- paste0(meta$treatment, "_", meta$assigned_tag)
+
+seu_sub@meta.data <- meta
+
+expr_mat <- GetAssayData(seu_sub, slot = "data")
+meta <- seu_sub@meta.data
 
 writeMM(expr_mat, "./data/infercnv/expr_normalized.mtx")
 

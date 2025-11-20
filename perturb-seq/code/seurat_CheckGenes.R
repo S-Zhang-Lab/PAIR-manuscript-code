@@ -9,7 +9,7 @@ library(tidyr)
 library(readxl)
 
 # load the genes from excel
-gene_tab <- read_excel("./info/updated 250918_information.xlsx", sheet = 5)
+gene_tab <- read_excel("./info/updated 250918_information_final.xlsx", sheet = 5)
 genes_to_plot <- gene_tab$gene
 
 # Import raw data and metadata----
@@ -122,12 +122,15 @@ write.csv(pct_exp_wide, "./res/2025_1119/genes_pct_exp_allgroups.csv", row.names
 
 
 
-df$avg_exp[df$avg_exp >= 2] <- 2
+df$avg_exp[df$avg_exp >= 1.5] <- 1.5
 
-chosen_groups <- c("RNP_NT_CRISPRa_NT_CasRx", 
-                   "RNP_NBN_CRISPRa_NT_CasRx",
-                   "RNP_NT_CRISPRa_KU70_CasRx",
-                   "RNP_NBN_CRISPRa_KU70_CasRx")
+chosen_groups <- c("CTRL_NT_CRISPRa_NT_CasRx",
+                   "CTRL_NBN_CRISPRa_NT_CasRx",
+                   "CTRL_NT_CRISPRa_53BP1_CasRx",
+                   "CTRL_NBN_CRISPRa_53BP1_CasRx")
+
+# chosen_groups <- c("CTRL_NT_CRISPRa_NT_CasRx", 
+#                    "RNP_NT_CRISPRa_NT_CasRx")
 
 df_sub <- df %>% filter(group %in% chosen_groups)
 df_sub$group <- factor(df_sub$group, levels = chosen_groups)
@@ -150,8 +153,8 @@ p <- ggplot(df_sub, aes(x = gene, y = group)) +     # swapped axes
   
   theme_classic(base_size = 14) +
   theme(
-    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 10),
-    axis.text.y = element_text(size = 9),
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 12),
+    axis.text.y = element_text(size = 15),
     legend.position = "top",
     plot.title = element_text(size = 16, face = "bold")
   ) +
@@ -163,9 +166,9 @@ p <- ggplot(df_sub, aes(x = gene, y = group)) +     # swapped axes
   )
 
 ggsave(
-  filename = "./res/2025_1119/genes_exp_NBN_KU70.png",   # output name
+  filename = "./res/2025_1120/genes_exp_NBN_53BP1.png",   # output name
   plot = p,                              # plot object
-  width = 36, 
+  width = 20, 
   height = 4, 
   dpi = 300
 )
