@@ -11,13 +11,15 @@ library(Matrix)
 scRNA_seq <- qread("./data/seu_prep.qs")
 meta_data <- scRNA_seq@meta.data
 
-seu_sub <- subset(
-  scRNA_seq,
-  subset = (
-    treatment == "RNP" |
-      (treatment == "CTRL" & assigned_tag == "NT_CRISPRa_NT_CasRx")
-  )
-)
+# seu_sub <- subset(
+#   scRNA_seq,
+#   subset = (
+#     treatment == "RNP" |
+#       (treatment == "CTRL" & assigned_tag == "NT_CRISPRa_NT_CasRx")
+#   )
+# )
+
+seu_sub <- scRNA_seq
 
 meta <- seu_sub@meta.data
 meta$treat_PAIR <- paste0(meta$treatment, "_", meta$assigned_tag)

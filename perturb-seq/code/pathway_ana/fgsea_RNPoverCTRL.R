@@ -45,9 +45,10 @@ for (i in 1:length(PAIR_tag)) {
     fgseaRes_RNP_over_CTRL <- fgsea(signature, RNP_over_CTRL, minSize=15, maxSize=500)
     
     # only keep significant pathways
-    fgseaRes_RNP_over_CTRL <- fgseaRes_RNP_over_CTRL[fgseaRes_RNP_over_CTRL$padj < 0.05, ]
+    fgseaRes_RNP_over_CTRL <- as.data.frame(fgseaRes_RNP_over_CTRL)
+    rownames(fgseaRes_RNP_over_CTRL) <- fgseaRes_RNP_over_CTRL$pathway
     
-    fwrite(fgseaRes_RNP_over_CTRL, paste0("./res/2025_1113/pwy_results_RNPoverCTRL/RNP_over_CTRL_", celltype, "_", pwy, ".csv"))
+    fwrite(fgseaRes_RNP_over_CTRL, paste0("./res/2025_1203/pwy_results_RNPoverCTRL/RNP_over_CTRL_", celltype, "_", pwy, ".csv"))
 
   }
 }

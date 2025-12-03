@@ -17,7 +17,7 @@ all(colnames(scRNA_seq) == rownames(meta_data)) # TRUE
 
 treatments <- c("CTRL", "RNP")
 
-treatment <- "RNP"
+treatment <- "CTRL"
 
 chosen_idx <- meta_data$treatment == treatment
 meta_data <- meta_data[chosen_idx, ]
@@ -102,47 +102,49 @@ cell_cycle_checkpoint <- c(
   "REACTOME_THE_ROLE_OF_GTSE1_IN_G2_M_PROGRESSION_AFTER_G2_CHECKPOINT"
 )
 
-signature <- signature_all[cell_cycle_checkpoint]
+# signature <- signature_all[cell_cycle_checkpoint]
+
+signature <- signature_all
 
 # Run fGSEA----
 fgseaRes_NBN_NT_over_NT_NT <- fgsea(signature, NBN_NT_over_NT_NT, minSize=15, maxSize=500)
 # fgseaRes_NBN_NT_over_NT_NT <- fgseaRes_NBN_NT_over_NT_NT[fgseaRes_NBN_NT_over_NT_NT$padj < 0.05, ]
-fwrite(fgseaRes_NBN_NT_over_NT_NT, paste0("./res/2025_1120/pwy_results", "_", treatment, "/NBN_NT_over_NT_NT_", pwy, ".csv"))
+fwrite(fgseaRes_NBN_NT_over_NT_NT, paste0("./res/2025_1203/pwy_results", "_", treatment, "/NBN_NT_over_NT_NT_", pwy, ".csv"))
 
 fgseaRes_MRE11_NT_over_NT_NT <- fgsea(signature, MRE11_NT_over_NT_NT, minSize=15, maxSize=500)
 # fgseaRes_MRE11_NT_over_NT_NT <- fgseaRes_MRE11_NT_over_NT_NT[fgseaRes_MRE11_NT_over_NT_NT$padj < 0.05, ]
-fwrite(fgseaRes_MRE11_NT_over_NT_NT, paste0("./res/2025_1120/pwy_results", "_", treatment, "/MRE11_NT_over_NT_NT_", pwy, ".csv"))
+fwrite(fgseaRes_MRE11_NT_over_NT_NT, paste0("./res/2025_1203/pwy_results", "_", treatment, "/MRE11_NT_over_NT_NT_", pwy, ".csv"))
 
 fgseaRes_NT_53BP1_over_NT_NT <- fgsea(signature, NT_53BP1_over_NT_NT, minSize=15, maxSize=500)
 # fgseaRes_NT_53BP1_over_NT_NT <- fgseaRes_NT_53BP1_over_NT_NT[fgseaRes_NT_53BP1_over_NT_NT$padj < 0.05, ]
-fwrite(fgseaRes_NT_53BP1_over_NT_NT, paste0("./res/2025_1120/pwy_results", "_", treatment, "/NT_53BP1_over_NT_NT_", pwy, ".csv"))
+fwrite(fgseaRes_NT_53BP1_over_NT_NT, paste0("./res/2025_1203/pwy_results", "_", treatment, "/NT_53BP1_over_NT_NT_", pwy, ".csv"))
 
 fgseaRes_NT_DNPKcs_over_NT_NT <- fgsea(signature, NT_DNPKcs_over_NT_NT, minSize=15, maxSize=500)
 # fgseaRes_NT_DNPKcs_over_NT_NT <- fgseaRes_NT_DNPKcs_over_NT_NT[fgseaRes_NT_DNPKcs_over_NT_NT$padj < 0.05, ]
-fwrite(fgseaRes_NT_DNPKcs_over_NT_NT, paste0("./res/2025_1120/pwy_results", "_", treatment, "/NT_DNPKcs_over_NT_NT_", pwy, ".csv"))
+fwrite(fgseaRes_NT_DNPKcs_over_NT_NT, paste0("./res/2025_1203/pwy_results", "_", treatment, "/NT_DNPKcs_over_NT_NT_", pwy, ".csv"))
 
 fgseaRes_NT_KU70_over_NT_NT <- fgsea(signature, NT_KU70_over_NT_NT, minSize=15, maxSize=500)
 # fgseaRes_NT_KU70_over_NT_NT <- fgseaRes_NT_KU70_over_NT_NT[fgseaRes_NT_KU70_over_NT_NT$padj < 0.05, ]
-fwrite(fgseaRes_NT_KU70_over_NT_NT, paste0("./res/2025_1120/pwy_results", "_", treatment, "/NT_KU70_over_NT_NT_", pwy, ".csv"))
+fwrite(fgseaRes_NT_KU70_over_NT_NT, paste0("./res/2025_1203/pwy_results", "_", treatment, "/NT_KU70_over_NT_NT_", pwy, ".csv"))
 
 fgseaRes_NT_PQ_over_NT_NT <- fgsea(signature, NT_PQ_over_NT_NT, minSize=15, maxSize=500)
 # fgseaRes_NT_PQ_over_NT_NT <- fgseaRes_NT_PQ_over_NT_NT[fgseaRes_NT_PQ_over_NT_NT$padj < 0.05, ]
-fwrite(fgseaRes_NT_PQ_over_NT_NT, paste0("./res/2025_1120/pwy_results", "_", treatment, "/NT_PQ_over_NT_NT_", pwy, ".csv"))
+fwrite(fgseaRes_NT_PQ_over_NT_NT, paste0("./res/2025_1203/pwy_results", "_", treatment, "/NT_PQ_over_NT_NT_", pwy, ".csv"))
 
 fgseaRes_NBN_DNPKcs_over_NT_NT <- fgsea(signature, NBN_DNPKcs_over_NT_NT, minSize=15, maxSize=500)
 # fgseaRes_NBN_DNPKcs_over_NT_NT <- fgseaRes_NBN_DNPKcs_over_NT_NT[fgseaRes_NBN_DNPKcs_over_NT_NT$padj < 0.05, ]
-fwrite(fgseaRes_NBN_DNPKcs_over_NT_NT, paste0("./res/2025_1120/pwy_results", "_", treatment, "/NBN_DNPKcs_over_NT_NT_", pwy, ".csv"))
+fwrite(fgseaRes_NBN_DNPKcs_over_NT_NT, paste0("./res/2025_1203/pwy_results", "_", treatment, "/NBN_DNPKcs_over_NT_NT_", pwy, ".csv"))
 
 fgseaRes_NBN_KU70_over_NT_NT <- fgsea(signature, NBN_KU70_over_NT_NT, minSize=15, maxSize=500)
 # fgseaRes_NBN_KU70_over_NT_NT <- fgseaRes_NBN_KU70_over_NT_NT[fgseaRes_NBN_KU70_over_NT_NT$padj < 0.05, ]
-fwrite(fgseaRes_NBN_KU70_over_NT_NT, paste0("./res/2025_1120/pwy_results", "_", treatment, "/NBN_KU70_over_NT_NT_", pwy, ".csv"))
+fwrite(fgseaRes_NBN_KU70_over_NT_NT, paste0("./res/2025_1203/pwy_results", "_", treatment, "/NBN_KU70_over_NT_NT_", pwy, ".csv"))
 
 fgseaRes_NBN_PQ_over_NT_NT <- fgsea(signature, NBN_PQ_over_NT_NT, minSize=15, maxSize=500)
 # fgseaRes_NBN_PQ_over_NT_NT <- fgseaRes_NBN_PQ_over_NT_NT[fgseaRes_NBN_PQ_over_NT_NT$padj < 0.05, ]
-fwrite(fgseaRes_NBN_PQ_over_NT_NT, paste0("./res/2025_1120/pwy_results", "_", treatment, "/NBN_PQ_over_NT_NT_", pwy, ".csv"))
+fwrite(fgseaRes_NBN_PQ_over_NT_NT, paste0("./res/2025_1203/pwy_results", "_", treatment, "/NBN_PQ_over_NT_NT_", pwy, ".csv"))
 
 fgseaRes_NBN_53BP1_over_NT_NT <- fgsea(signature, NBN_53BP1_over_NT_NT, minSize=15, maxSize=500)
 # fgseaRes_NBN_53BP1_over_NT_NT <- fgseaRes_NBN_53BP1_over_NT_NT[fgseaRes_NBN_53BP1_over_NT_NT$padj < 0.05, ]
-fwrite(fgseaRes_NBN_53BP1_over_NT_NT, paste0("./res/2025_1120/pwy_results", "_", treatment, "/NBN_53BP1_over_NT_NT_", pwy, ".csv"))
+fwrite(fgseaRes_NBN_53BP1_over_NT_NT, paste0("./res/2025_1203/pwy_results", "_", treatment, "/NBN_53BP1_over_NT_NT_", pwy, ".csv"))
 
 
