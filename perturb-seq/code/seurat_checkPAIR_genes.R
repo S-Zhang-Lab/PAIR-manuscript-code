@@ -17,9 +17,12 @@ gene_list <- c("NBN",
                "XRCC6", # "KU70", 
                "TP53BP1", # "53BP1", 
                "PRKDC", # "DNPKcs", 
-               "PARP1", # "PQ", 
+               "PQBP1", # "PQ", 
                "MRE11",
-               "TP53") 
+               "TP53",
+               "RPA1", 
+               "RPA2", 
+               "RPA3") 
 
 p <- VlnPlot(
   scRNA_seq,
@@ -39,7 +42,7 @@ p <- lapply(
 # display
 p <- patchwork::wrap_plots(p)
 
-ggsave("./res/2025_1203/violin_plot_DNA_repair_genes_by_celltype_combined.png", plot = p, width = 20, height = 18)
+ggsave("./res/2025_1217/violin_plot_DNA_repair_genes_by_celltype_combined.png", plot = p, width = 22, height = 22)
 
 ### RNP ###
 scRNA_seq_RNP <- subset(scRNA_seq, subset = treatment == "RNP")
@@ -61,7 +64,7 @@ p <- lapply(
 # display
 p <- patchwork::wrap_plots(p)
 
-ggsave("./res/2025_1203/violin_plot_DNA_repair_genes_by_celltype_RNP.png", plot = p, width = 20, height = 18)
+ggsave("./res/2025_1217/violin_plot_DNA_repair_genes_by_celltype_RNP.png", plot = p, width = 22, height = 22)
 
 
 ### CTRL ###
@@ -84,4 +87,4 @@ p <- lapply(
 # display
 p <- patchwork::wrap_plots(p)
 
-ggsave("./res/2025_1203/violin_plot_DNA_repair_genes_by_celltype_CTRL.png", plot = p, width = 20, height = 18)
+ggsave("./res/2025_1217/violin_plot_DNA_repair_genes_by_celltype_CTRL.png", plot = p, width = 22, height = 22)
