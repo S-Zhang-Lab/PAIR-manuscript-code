@@ -15,7 +15,7 @@ meta_data <- scRNA_seq@meta.data
 gene_list <- c("NBN", "XRCC6", # "KU70", 
                "TP53BP1", # "53BP1", 
                "PRKDC", # "DNPKcs", 
-               "PQBP1", # "PQ", 
+               "POLQ", # "PQ", 
                "MRE11",
                "TP53",
                "RPA1", 
@@ -103,6 +103,26 @@ df$gene <- factor(df$gene, levels = genes_present)
 
 
 df$avg_exp[df$avg_exp >= 1.5] <- 1.5
+
+chosen_groups <- c("CTRL_NT_CRISPRa_NT_CasRx",
+                   "CTRL_NBN_CRISPRa_NT_CasRx",
+                   "CTRL_NT_CRISPRa_53BP1_CasRx",
+                   "CTRL_NBN_CRISPRa_53BP1_CasRx")
+
+chosen_groups <- c("CTRL_NT_CRISPRa_NT_CasRx",
+                   "CTRL_NBN_CRISPRa_NT_CasRx",
+                   "CTRL_NT_CRISPRa_DNPKcs_CasRx",
+                   "CTRL_NBN_CRISPRa_DNPKcs_CasRx")
+
+chosen_groups <- c("CTRL_NT_CRISPRa_NT_CasRx",
+                   "CTRL_NBN_CRISPRa_NT_CasRx",
+                   "CTRL_NT_CRISPRa_KU70_CasRx",
+                   "CTRL_NBN_CRISPRa_KU70_CasRx")
+
+chosen_groups <- c("CTRL_NT_CRISPRa_NT_CasRx",
+                   "CTRL_NBN_CRISPRa_NT_CasRx",
+                   "CTRL_NT_CRISPRa_PQ_CasRx",
+                   "CTRL_NBN_CRISPRa_PQ_CasRx")
 
 chosen_groups <- c("RNP_NT_CRISPRa_NT_CasRx",
                    "RNP_NBN_CRISPRa_NT_CasRx",
