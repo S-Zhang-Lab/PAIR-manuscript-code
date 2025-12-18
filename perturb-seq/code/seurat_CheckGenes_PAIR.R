@@ -20,7 +20,11 @@ gene_list <- c("NBN", "XRCC6", # "KU70",
                "TP53",
                "RPA1", 
                "RPA2", 
-               "RPA3") 
+               "RPA3",
+               "RAD50",
+               "BRCA1",
+               "ATM",
+               "PALB2") 
 
 # -----------------------------
 # 2. Extract expression matrix
