@@ -26,8 +26,7 @@ scRNA_seq <- CellCycleScoring(
   set.ident = FALSE
 )
 
-meta_data <- scRNA_seq@meta.data
-
+# qsave(scRNA_seq, "./data/seu_prep.qs")  # save updated Seurat object
 
 p <- DimPlot(scRNA_seq, reduction = "umap", group.by = "Phase", label = FALSE)
 ggsave("./res/2025_1217/umap_cell_cycle_phase.png", plot = p, width = 6, height = 5)
