@@ -12,10 +12,12 @@ DATA_DIR=/afs/crc.nd.edu/group/StatDataMine/dm008/Dailin_Gan/Siyuan/PAIR-perturb
 OUT_DIR=/afs/crc.nd.edu/group/StatDataMine/dm008/Dailin_Gan/Siyuan/PAIR-perturb-seq_2025-10/PAIR_output
 
 # full run
+
 python check_PAIR_repeating_seq.py \
   --fastq ${DATA_DIR}/PAIR_TT_C12-SI_TT_C12_2333FLLT3_S3_L007_R2_001.fastq.gz \
   --n_reads 0 \
   --max_mismatch 1 \
-  --out_prefix ${OUT_DIR}/PAIR_TT_C12_L007_R2_whitelist_mm1_all
-
-
+  --out_prefix ${OUT_DIR}/PAIR_TT_C12_L007_R2_whitelist_mm1_all \
+  --write_per_read \
+  --write_only_matches \
+  --flush_every 100000

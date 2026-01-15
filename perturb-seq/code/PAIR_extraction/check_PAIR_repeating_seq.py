@@ -173,6 +173,24 @@ def main():
         default="GTTTCAAACCCCGACCAGTTGGTAGGGGTTTACTTG",
         help="Whitelist sequence 2",
     )
+
+    ap.add_argument(
+        "--write_per_read",
+        action="store_true",
+        help="Write per-read TSV. For huge FASTQs this can be large; consider matches-only + flushing.",
+    )  # ### NEW
+    ap.add_argument(
+        "--write_only_matches",
+        action="store_true",
+        help="If set, write ONLY reads with >=1 match (recommended for large FASTQs).",
+    )  # ### NEW
+    ap.add_argument(
+        "--flush_every",
+        type=int,
+        default=100000,
+        help="Flush per-read output every N matched records (default: 100000).",
+    )  # ### NEW
+
     args = ap.parse_args()
 
     k = args.max_mismatch
@@ -182,47 +200,71 @@ def main():
     patterns = {"SEQ1": args.seq1.upper(), "SEQ2": args.seq2.upper()}
     stats: Dict[str, PatternStats] = {lab: PatternStats(pat) for lab, pat in patterns.items()}
 
-    per_read_rows = []
+    # ---------- CHANGED: remove per_read_rows list (OOM) ----------
+    # per_read_rows = []   # ### CHANGED (removed)
     scanned = 0
 
-    for header, seq, plus, qual in iter_fastq_gz(args.fastq):
-        if args.n_reads and scanned >= args.n_reads:
-            break
-
-        seq_u = seq.upper()
-        read_id = header.split()[0].lstrip("@")
-
-        row = {
-            "read_index": scanned + 1,  # 1-based read index
-            "read_id": read_id,
-            "seq_len": len(seq_u),
-        }
-
-        for label, pat in patterns.items():
-            pos0, mm = find_all_positions_upto_k_mismatch(seq_u, pat, k)
-            stats[label].update(pos0, mm)
-
-            row[f"{label}_n_matches"] = len(pos0)
-            row[f"{label}_pos0"] = ",".join(map(str, pos0)) if pos0 else ""
-            row[f"{label}_pos1"] = ",".join(str(p + 1) for p in pos0) if pos0 else ""
-            row[f"{label}_mm"] = ",".join(map(str, mm)) if mm else ""  # mismatch counts aligned with positions
-
-        per_read_rows.append(row)
-        scanned += 1
-
-    # Write per-read TSV
-    tsv_path = f"{args.out_prefix}.per_read.tsv"
+    # ---------- NEW: streaming output handle + matched counter ----------
+    tsv_path = f"{args.out_prefix}.per_read.tsv"  # ### NEW
     cols = [
         "read_index", "read_id", "seq_len",
         "SEQ1_n_matches", "SEQ1_pos0", "SEQ1_pos1", "SEQ1_mm",
         "SEQ2_n_matches", "SEQ2_pos0", "SEQ2_pos1", "SEQ2_mm",
-    ]
-    with open(tsv_path, "w") as out:
-        out.write("\t".join(cols) + "\n")
-        for r in per_read_rows:
-            out.write("\t".join(str(r.get(c, "")) for c in cols) + "\n")
+    ]  # ### NEW
 
-    # Summary JSON
+    out = None  # ### NEW
+    matched_records = 0  # ### NEW
+
+    if args.write_per_read:  # ### NEW
+        out = open(tsv_path, "w")
+        out.write("\t".join(cols) + "\n")
+
+    try:
+        for header, seq, plus, qual in iter_fastq_gz(args.fastq):
+            if args.n_reads and scanned >= args.n_reads:
+                break
+
+            seq_u = seq.upper()
+            read_id = header.split()[0].lstrip("@")
+
+            row = {
+                "read_index": scanned + 1,
+                "read_id": read_id,
+                "seq_len": len(seq_u),
+            }
+
+            for label, pat in patterns.items():
+                pos0, mm = find_all_positions_upto_k_mismatch(seq_u, pat, k)
+                stats[label].update(pos0, mm)
+
+                row[f"{label}_n_matches"] = len(pos0)
+                row[f"{label}_pos0"] = ",".join(map(str, pos0)) if pos0 else ""
+                row[f"{label}_pos1"] = ",".join(str(p + 1) for p in pos0) if pos0 else ""
+                row[f"{label}_mm"] = ",".join(map(str, mm)) if mm else ""
+
+            # ---------- NEW: decide whether this read is "matched" ----------
+            has_match = (row["SEQ1_n_matches"] > 0) or (row["SEQ2_n_matches"] > 0)  # ### NEW
+
+            # ---------- CHANGED: write row immediately instead of storing ----------
+            if out is not None:
+                if (not args.write_only_matches) or has_match:  # ### NEW
+                    out.write("\t".join(str(row.get(c, "")) for c in cols) + "\n")  # ### CHANGED
+
+                # ---------- NEW: flush every N matched records ----------
+                if has_match:  # ### NEW
+                    matched_records += 1
+                    if args.flush_every > 0 and matched_records % args.flush_every == 0:
+                        out.flush()
+                        print(f"[INFO] Flushed {matched_records} matched records...")
+
+            scanned += 1
+
+    finally:
+        if out is not None:
+            out.flush()  # ### NEW (final flush)
+            out.close()
+
+    # Summary JSON (unchanged logic)
     summary = {
         "fastq": args.fastq,
         "n_reads_requested": args.n_reads,
@@ -242,17 +284,21 @@ def main():
             "start_pos_hist_0based": dict(sorted(st.start_pos_0based.items())),
             "start_pos_hist_1based": dict(sorted(st.start_pos_1based.items())),
             "matches_per_read_hist": dict(sorted(st.matches_per_read.items())),
-            "mismatches_hist": dict(sorted(st.mismatches_hist.items())),  # e.g., {0:..., 1:...}
+            "mismatches_hist": dict(sorted(st.mismatches_hist.items())),
         }
 
     json_path = f"{args.out_prefix}.summary.json"
-    with open(json_path, "w") as out:
-        json.dump(summary, out, indent=2)
+    with open(json_path, "w") as out_json:
+        json.dump(summary, out_json, indent=2)
 
     print(f"Done. Scanned {scanned} reads.")
-    print(f"Wrote per-read positions: {tsv_path}")
+    if args.write_per_read:
+        print(f"Wrote per-read positions: {tsv_path}")
+        if args.write_only_matches:
+            print(f"Per-read TSV contains ONLY matched reads. Matched records: {matched_records}")
     print(f"Wrote summary stats:     {json_path}")
 
 
 if __name__ == "__main__":
     main()
+
