@@ -1,0 +1,4 @@
+id,name,sequence,read,pattern,feature_type
+C0255_hto,C0255_hto,AAGTATCGTTTCGCA,R2,5PNNNNNNNNNN(BC),Antibody Capture
+C0256_hto,C0256_hto,GGTTGCCAGATGTCA,R2,5PNNNNNNNNNN(BC),Antibody Capture
+C0257_hto,C0257_hto,TGTCTTTCCTGCCAG,R2,5PNNNNNNNNNN(BC),Antibody Capture
