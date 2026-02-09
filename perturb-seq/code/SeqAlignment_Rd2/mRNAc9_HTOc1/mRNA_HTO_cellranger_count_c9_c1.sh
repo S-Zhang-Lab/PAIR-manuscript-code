@@ -1,7 +1,8 @@
 #!/bin/bash
 #$ -M dgan@nd.edu
 #$ -m abe
-#$ -pe smp 24 # reserving 24 cores
+#$ -pe smp 48 # reserving 48 cores
+#$ -l h_vmem=300G
 #$ -q long
 #$ -N cellranger_mRNAc9_HTOc1
 
@@ -17,7 +18,7 @@ cd "$OUTDIR" || exit 1
 cellranger multi \
   --id=${SAMPLE_ID}_Output \
   --csv=${MULTI_CONFIG} \
-  --localcores=24 \
-  --localmem=240
+  --localcores=48 \
+  --localmem=295
 
 echo "✅ Cell Ranger multi completed at $(date)"
