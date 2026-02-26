@@ -44,9 +44,9 @@ seu@meta.data <- meta
 
 # ==== load PAIR results ====
 # Specify file paths
-barcodes_file <- "./data/PAIR_output/PAIR_matched_sparse_UMI_matrix_rows.txt"
-features_file <- "./data/PAIR_output/PAIR_matched_sparse_UMI_matrix_columns.txt"
-matrix_file   <- "./data/PAIR_output/PAIR_matched_sparse_UMI_matrix.mtx"
+barcodes_file <- "./data/PAIR_output/PAIR_matched_sparse_UMI_matrix_middle10_rows.txt"
+features_file <- "./data/PAIR_output/PAIR_matched_sparse_UMI_matrix_middle10_columns.txt"
+matrix_file   <- "./data/PAIR_output/PAIR_matched_sparse_UMI_matrix_middle10.mtx"
 
 # Read the matrix (sparse format)
 mat <- readMM(matrix_file)
