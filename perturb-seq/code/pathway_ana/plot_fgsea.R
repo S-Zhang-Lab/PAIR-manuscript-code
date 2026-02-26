@@ -8,10 +8,10 @@ library(qs)
 source("./code/pathway_ana/fcn_plot_pathway_embed.R")
 pathway_embed <- qread("./data/pathway_embedding_metadata_umap.qs")
 
-input_dir  <- "./res/2025_1203/pwy_results_CTRL"
-output_dir_overall <- "./res/2025_1203/pwy_results_CTRL/overall"
-output_dir_NES_larger1 <- "./res/2025_1203/pwy_results_CTRL/NES_larger1"
-output_dir_sig <- "./res/2025_1203/pwy_results_CTRL/sig"
+input_dir  <- "./res/2026_0225/pwy_results_RNP"
+output_dir_overall <- "./res/2026_0225/pwy_results_RNP/overall"
+output_dir_NES_larger1 <- "./res/2026_0225/pwy_results_RNP/NES_larger1"
+output_dir_sig <- "./res/2026_0225/pwy_results_RNP/sig"
 
 # Create output folder if it does not exist
 if (!dir.exists(output_dir_overall)) {
