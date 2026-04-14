@@ -9,19 +9,42 @@
 # config.local.R is gitignored so each user/machine can have its own path
 # without polluting the repo.
 
-# Locate config.local.R next to this file.
-.config_dir <- tryCatch(
-  dirname(normalizePath(sys.frame(1)$ofile, mustWork = FALSE)),
-  error = function(e) getwd()
-)
-.local_cfg <- file.path(.config_dir, "config.local.R")
+# Locate config.local.R. Strategy: walk the source() call stack for a frame
+# whose ofile ends in "config.R" and look for "config.local.R" next to it;
+# if that fails, fall back to common relative paths from the current wd.
+.find_local_cfg <- function() {
+  frames <- sys.frames()
+  for (i in rev(seq_along(frames))) {
+    f <- try(frames[[i]]$ofile, silent = TRUE)
+    if (!inherits(f, "try-error") && !is.null(f) && nzchar(f)) {
+      nf <- normalizePath(f, mustWork = FALSE)
+      if (endsWith(nf, "config.R") && !endsWith(nf, "config.local.R")) {
+        candidate <- file.path(dirname(nf), "config.local.R")
+        if (file.exists(candidate)) return(candidate)
+      }
+    }
+  }
+  # Fallbacks for common cwd locations
+  for (p in c(
+    "code/config.local.R",           # cwd = repo/
+    "config.local.R",                # cwd = repo/code/
+    "../config.local.R",             # cwd = repo/code/analysis_code/
+    "../../config.local.R"           # cwd = repo/code/analysis_code/<sub>/
+  )) {
+    if (file.exists(p)) return(normalizePath(p, mustWork = FALSE))
+  }
+  NULL
+}
+.local_cfg <- .find_local_cfg()
 
-if (file.exists(.local_cfg)) {
+if (!is.null(.local_cfg) && file.exists(.local_cfg)) {
   source(.local_cfg, local = FALSE)
 } else {
   stop(
-    "config.local.R not found at ", .local_cfg, "\n",
-    "Create it with a single line, for example:\n",
+    "config.local.R not found. Searched the source call stack and the ",
+    "common locations (code/config.local.R, config.local.R, ",
+    "../config.local.R, ../../config.local.R).\n",
+    "Create one next to code/config.R with a single line, e.g.:\n",
     '  DATA_ROOT <- "/path/to/PAIR-perturb-seq_2025-10_SZ"\n'
   )
 }
@@ -46,4 +69,4 @@ EMBED_DIR  <- file.path(DATA_DIR, "embedding")
 C2_EMBED   <- file.path(EMBED_DIR, "c2_pathway_embeddings.qs")
 PROT_EMBED <- file.path(EMBED_DIR, "hs_ProtTrans_embed_All.rds")
 
-rm(.config_dir, .local_cfg)
+rm(.find_local_cfg, .local_cfg)
