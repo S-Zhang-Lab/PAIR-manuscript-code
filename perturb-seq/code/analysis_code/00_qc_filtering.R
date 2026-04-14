@@ -36,8 +36,10 @@ if (file.exists("code/config.R")) {
 # --- Paths ---
 base_dir  <- DATA_ROOT
 data_dir  <- file.path(base_dir, "data")
-res_dir   <- file.path(base_dir, "res", "00_qc")
-dir.create(res_dir, recursive = TRUE, showWarnings = FALSE)
+out_dir <- file.path(OUTPUT_DIR, "00_qc")
+fig_dir <- file.path(FIGURES_DIR, "00_qc")
+dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(fig_dir, recursive = TRUE, showWarnings = FALSE)
 
 # --- Load ---
 cat("Loading seu_prep.qs...\n")
@@ -105,7 +107,7 @@ p_vln_before <- VlnPlot(seu, features = c("nCount_RNA", "nFeature_RNA", "percent
                          group.by = "filter_reason", pt.size = 0.1, ncol = 3) +
   plot_annotation(title = "QC Metrics by Filter Status (Before Filtering)")
 
-ggsave(file.path(res_dir, "qc_violin_by_filter_status.pdf"), p_vln_before,
+ggsave(file.path(fig_dir, "qc_violin_by_filter_status.pdf"), p_vln_before,
        width = 14, height = 5)
 
 # Scatter: nCount vs nFeature, colored by mito
@@ -135,7 +137,7 @@ p_scatter2 <- ggplot(df_scatter, aes(x = nCount, y = pct_mt, color = pass)) +
   labs(title = "QC Scatter: nCount vs % Mito")
 
 p_scatter <- p_scatter1 / p_scatter2
-ggsave(file.path(res_dir, "qc_scatter_thresholds.pdf"), p_scatter, width = 8, height = 10)
+ggsave(file.path(fig_dir, "qc_scatter_thresholds.pdf"), p_scatter, width = 8, height = 10)
 
 # --- Cell counts per tag x treatment before/after ---
 tag_treat_before <- as.data.frame(table(seu$assigned_tag, seu$treatment))
@@ -156,8 +158,8 @@ tag_totals <- cell_counts %>%
   summarise(Total_Before = sum(Before), Total_After = sum(After), .groups = "drop") %>%
   mutate(Flag = ifelse(Total_After < 30, "LOW_POWER", ""))
 
-write.csv(cell_counts, file.path(res_dir, "cell_counts_by_tag_treatment.csv"), row.names = FALSE)
-write.csv(tag_totals, file.path(res_dir, "cell_counts_by_tag_totals.csv"), row.names = FALSE)
+write.csv(cell_counts, file.path(out_dir, "cell_counts_by_tag_treatment.csv"), row.names = FALSE)
+write.csv(tag_totals, file.path(out_dir, "cell_counts_by_tag_totals.csv"), row.names = FALSE)
 
 cat("\n=== Cell Counts by Tag (Before -> After) ===\n")
 print(tag_totals)
@@ -188,7 +190,7 @@ seu_filt <- RunPCA(seu_filt, npcs = 50, verbose = FALSE)
 
 # Elbow plot
 p_elbow <- ElbowPlot(seu_filt, ndims = 50) + ggtitle("Elbow Plot (Post-QC)")
-ggsave(file.path(res_dir, "elbow_plot.pdf"), p_elbow, width = 6, height = 4)
+ggsave(file.path(fig_dir, "elbow_plot.pdf"), p_elbow, width = 6, height = 4)
 
 # Clustering and UMAP (use 20 PCs as in original)
 seu_filt <- FindNeighbors(seu_filt, dims = 1:20)
@@ -215,13 +217,13 @@ p_umap_phase <- DimPlot(seu_filt, group.by = "Phase", pt.size = 0.5) +
   ggtitle("UMAP: Cell Cycle Phase")
 
 p_umap_all <- (p_umap_tag | p_umap_treat) / (p_umap_clust | p_umap_phase)
-ggsave(file.path(res_dir, "umap_post_qc.pdf"), p_umap_all, width = 16, height = 12)
+ggsave(file.path(fig_dir, "umap_post_qc.pdf"), p_umap_all, width = 16, height = 12)
 
 # Post-QC violin plots
 p_vln_after <- VlnPlot(seu_filt, features = c("nCount_RNA", "nFeature_RNA", "percent.mt"),
                         group.by = "seurat_clusters", pt.size = 0.1, ncol = 3) +
   plot_annotation(title = "QC Metrics by Cluster (Post-QC)")
-ggsave(file.path(res_dir, "qc_violin_post_qc.pdf"), p_vln_after, width = 14, height = 5)
+ggsave(file.path(fig_dir, "qc_violin_post_qc.pdf"), p_vln_after, width = 14, height = 5)
 
 # --- Save ---
 cat("Saving filtered object...\n")
@@ -259,6 +261,8 @@ summary_text <- paste0(
   ifelse(length(low_power) > 0, paste(low_power, collapse = ", "), "None"), "\n"
 )
 
-writeLines(summary_text, file.path(res_dir, "qc_summary.txt"))
+writeLines(summary_text, file.path(out_dir, "qc_summary.txt"))
 cat(summary_text)
 cat("\nDone. Saved to:", file.path(data_dir, "seu_qc.qs"), "\n")
+cat("Tables written to:", out_dir, "\n")
+cat("Figures written to:", fig_dir, "\n")

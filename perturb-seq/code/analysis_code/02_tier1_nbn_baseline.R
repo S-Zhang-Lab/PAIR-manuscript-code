@@ -29,8 +29,10 @@ if (file.exists("code/config.R")) {
 # ---------------------------------------------------------------------------
 
 base_dir <- DATA_ROOT
-res_dir <- file.path(base_dir, "res", "02_tier1")
-dir.create(res_dir, recursive = TRUE, showWarnings = FALSE)
+out_dir <- file.path(OUTPUT_DIR, "02_tier1")
+fig_dir <- file.path(FIGURES_DIR, "02_tier1")
+dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(fig_dir, recursive = TRUE, showWarnings = FALSE)
 
 cat("Loading seu_qc.qs...\n")
 seu <- qread(file.path(base_dir, "data", "seu_qc.qs"))
@@ -78,10 +80,10 @@ cat(
 )
 
 # Save full results
-write.csv(de_results, file.path(res_dir, "Tier1_NBN_baseline_DE.csv"), row.names = FALSE)
+write.csv(de_results, file.path(out_dir, "Tier1_NBN_baseline_DE.csv"), row.names = FALSE)
 
 
-de_results <- read.csv("./res/02_tier1/Tier1_NBN_baseline_DE.csv")
+de_results <- read.csv(file.path(out_dir, "Tier1_NBN_baseline_DE.csv"))
 
 
 # --- Volcano Plot ---
@@ -132,7 +134,7 @@ p_volcano <- ggplot(de_results, aes(x = avg_log2FC, y = -log10(p_plot), color = 
     x = "Log2 Fold Change", y = "-Log10(P-value)", color = ""
   )
 
-ggsave("./res/02_tier1/Tier1_Volcano.pdf", p_volcano, width = 7, height = 7)
+ggsave(file.path(fig_dir, "Tier1_Volcano.pdf"), p_volcano, width = 7, height = 7)
 
 # --- Summary ---
 cat("\n=== Tier 1 Summary ===\n")
@@ -154,4 +156,6 @@ if ("NBN" %in% de_results$gene) {
   )
 }
 
-cat("\nStep 02 complete. Results in:", res_dir, "\n")
+cat("\nStep 02 complete.\n")
+cat("Tables written to:", out_dir, "\n")
+cat("Figures written to:", fig_dir, "\n")

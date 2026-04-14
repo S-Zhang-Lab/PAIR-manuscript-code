@@ -3,7 +3,8 @@
 # PAIR-Perturb-Seq Analysis Pipeline
 #
 # Input:  data/seu_qc.qs
-# Output: res/08_phase2/ (epistasis tables, heatmaps, PCA manifold)
+# Output: output/08_phase2/ (epistasis tables)
+#         figures/08_phase2/ (heatmaps, PCA manifold, scatter plots)
 #
 # Module A: Gene-level additive model (FC residuals)
 # Module B: Pathway-level tau scores (AUCell-based)
@@ -32,8 +33,10 @@ if (file.exists("code/config.R")) {
 # ---------------------------------------------------------------------------
 
 base_dir <- DATA_ROOT
-res_dir <- file.path(base_dir, "res", "08_phase2")
-dir.create(res_dir, recursive = TRUE, showWarnings = FALSE)
+out_dir <- file.path(OUTPUT_DIR, "08_phase2")
+fig_dir <- file.path(FIGURES_DIR, "08_phase2")
+dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(fig_dir, recursive = TRUE, showWarnings = FALSE)
 
 cat("Loading seu_qc.qs...\n")
 seu <- qread(file.path(base_dir, "data", "seu_qc.qs"))
@@ -169,7 +172,7 @@ for (partner in partners) {
 
 # Combine and save
 epi_all <- do.call(rbind, epistasis_results)
-write.csv(epi_all, file.path(res_dir, "ModuleA_epistasis_gene_level.csv"), row.names = FALSE)
+write.csv(epi_all, file.path(out_dir, "ModuleA_epistasis_gene_level.csv"), row.names = FALSE)
 
 # Summary table
 epi_summary <- epi_all %>%
@@ -179,7 +182,7 @@ epi_summary <- epi_all %>%
   mutate(pct = round(100 * n / sum(n), 1)) %>%
   ungroup()
 
-write.csv(epi_summary, file.path(res_dir, "ModuleA_epistasis_summary.csv"), row.names = FALSE)
+write.csv(epi_summary, file.path(out_dir, "ModuleA_epistasis_summary.csv"), row.names = FALSE)
 cat("\nModule A Summary:\n")
 print(epi_summary)
 
@@ -205,7 +208,7 @@ for (partner in partners) {
       x = "Expected (FC_A + FC_B)", y = "Observed (FC_AB)", color = ""
     )
 
-  ggsave(file.path(res_dir, paste0("ModuleA_scatter_", partner, ".pdf")),
+  ggsave(file.path(fig_dir, paste0("ModuleA_scatter_", partner, ".pdf")),
     p_scatter,
     width = 7, height = 7
   )
@@ -217,7 +220,7 @@ for (partner in partners) {
 cat("\n=== MODULE B: Pathway-level Tau Scores ===\n")
 
 # Load AUCell results if available
-aucell_file <- file.path(base_dir, "res", "07_tier5", "aucell_summary.csv")
+aucell_file <- file.path(OUTPUT_DIR, "07_tier5", "aucell_summary.csv")
 if (file.exists(aucell_file)) {
   auc_df <- read.csv(aucell_file)
 
@@ -254,7 +257,7 @@ if (file.exists(aucell_file)) {
   }
 
   tau_all <- do.call(rbind, tau_list)
-  write.csv(tau_all, file.path(res_dir, "ModuleB_tau_scores.csv"), row.names = FALSE)
+  write.csv(tau_all, file.path(out_dir, "ModuleB_tau_scores.csv"), row.names = FALSE)
 
   # Heatmap of tau scores
   tau_wide <- tau_all %>%
@@ -273,7 +276,7 @@ if (file.exists(aucell_file)) {
   sig_rows <- max_tau > quantile(max_tau, 0.75)
 
   if (sum(sig_rows) >= 3) {
-    pdf(file.path(res_dir, "ModuleB_tau_heatmap.pdf"),
+    pdf(file.path(fig_dir, "ModuleB_tau_heatmap.pdf"),
       width = 8, height = max(6, sum(sig_rows) * 0.4 + 2)
     )
     pheatmap(as.matrix(tau_wide[sig_rows, ]),
@@ -368,14 +371,14 @@ if (length(pb_list) >= 3) {
       color = "Condition", shape = "Treatment"
     )
 
-  ggsave(file.path(res_dir, "ModuleC_pca_manifold.pdf"), p_pca, width = 7, height = 7)
+  ggsave(file.path(fig_dir, "ModuleC_pca_manifold.pdf"), p_pca, width = 7, height = 7)
 
   # Correlation matrix
   cor_mat <- cor(pb_log[top_genes, ])
   colnames(cor_mat) <- gsub("_CRISPRa|_CasRx", "", colnames(cor_mat))
   rownames(cor_mat) <- gsub("_CRISPRa|_CasRx", "", rownames(cor_mat))
 
-  pdf(file.path(res_dir, "ModuleC_correlation_heatmap.pdf"), width = 8, height = 8)
+  pdf(file.path(fig_dir, "ModuleC_correlation_heatmap.pdf"), width = 8, height = 8)
   pheatmap(cor_mat,
     color = colorRampPalette(c("#2166AC", "white", "#E64B35"))(100),
     main = "Module C: Pseudobulk Correlation Matrix",
@@ -397,8 +400,8 @@ cat("\n=== MODULE D: Gatekeeper Hierarchy ===\n")
 # Rescue = partner KD reverses genes that are changed by NBN activation
 # Use DE from Tier 3 (partner vs NT within RNP_NBN)
 
-tier3_dir <- file.path(base_dir, "res", "04_tier3")
-tier2_file <- file.path(base_dir, "res", "03_tier2", "Tier2_interaction_table.csv")
+tier3_dir <- file.path(OUTPUT_DIR, "04_tier3")
+tier2_file <- file.path(OUTPUT_DIR, "03_tier2", "Tier2_interaction_table.csv")
 
 if (file.exists(tier2_file)) {
   tier2 <- read.csv(tier2_file)
@@ -448,7 +451,7 @@ if (file.exists(tier2_file)) {
   }
 
   rescue_df <- do.call(rbind, rescue_results)
-  write.csv(rescue_df, file.path(res_dir, "ModuleD_rescue_summary.csv"), row.names = FALSE)
+  write.csv(rescue_df, file.path(out_dir, "ModuleD_rescue_summary.csv"), row.names = FALSE)
 
   # Bar chart of rescue percentages
   p_rescue <- ggplot(rescue_df, aes(x = partner, y = pct_rescued, fill = partner)) +
@@ -463,9 +466,9 @@ if (file.exists(tier2_file)) {
     ) +
     ylim(0, max(rescue_df$pct_rescued) * 1.2)
 
-  ggsave(file.path(res_dir, "ModuleD_rescue_barplot.pdf"), p_rescue, width = 6, height = 6)
+  ggsave(file.path(fig_dir, "ModuleD_rescue_barplot.pdf"), p_rescue, width = 6, height = 6)
 } else {
   cat("WARNING: Tier 2 results not found. Run Step 03 first.\n")
 }
 
-cat("\nStep 08 complete. Results in:", res_dir, "\n")
+cat("\nStep 08 complete. Tables in:", out_dir, "| Figures in:", fig_dir, "\n")

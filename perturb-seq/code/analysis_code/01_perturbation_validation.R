@@ -29,8 +29,10 @@ if (file.exists("code/config.R")) {
 # ---------------------------------------------------------------------------
 
 base_dir <- DATA_ROOT
-res_dir  <- file.path(base_dir, "res", "01_validation")
-dir.create(res_dir, recursive = TRUE, showWarnings = FALSE)
+out_dir <- file.path(OUTPUT_DIR, "01_validation")
+fig_dir <- file.path(FIGURES_DIR, "01_validation")
+dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(fig_dir, recursive = TRUE, showWarnings = FALSE)
 
 # --- Load QC-filtered object ---
 cat("Loading seu_qc.qs...\n")
@@ -68,7 +70,7 @@ count_wide <- count_tab %>%
   mutate(Total = CTRL + RNP) %>%
   arrange(desc(Total))
 print(count_wide)
-write.csv(count_wide, file.path(res_dir, "cell_counts_summary.csv"), row.names = FALSE)
+write.csv(count_wide, file.path(out_dir, "cell_counts_summary.csv"), row.names = FALSE)
 
 # Bar chart
 p_bar <- ggplot(count_tab, aes(x = reorder(Tag, -Count), y = Count, fill = Treatment)) +
@@ -77,7 +79,7 @@ p_bar <- ggplot(count_tab, aes(x = reorder(Tag, -Count), y = Count, fill = Treat
   theme_classic(base_size = 14) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 11)) +
   labs(x = "PAIR Tag", y = "Cell Count", title = "Cell Counts by Tag and Treatment")
-ggsave(file.path(res_dir, "cell_counts_barplot.pdf"), p_bar, width = 10, height = 6)
+ggsave(file.path(fig_dir, "cell_counts_barplot.pdf"), p_bar, width = 10, height = 6)
 
 # --- 2. UMAP Plots ---
 
@@ -92,7 +94,7 @@ p_umap2 <- DimPlot(seu, group.by = "treatment", pt.size = 1.5) +
   ggtitle("UMAP: Treatment")
 
 p_umap <- p_umap1 | p_umap2
-ggsave(file.path(res_dir, "umap_overview.pdf"), p_umap, width = 16, height = 7)
+ggsave(file.path(fig_dir, "umap_overview.pdf"), p_umap, width = 16, height = 7)
 
 # --- 3. DotPlot: Target Gene Expression ---
 # Subset to key NBN-axis conditions for clarity
@@ -130,7 +132,7 @@ p_dot <- DotPlot(seu_sub, features = target_genes, dot.scale = 8) +
         axis.text.y = element_text(size = 12),
         aspect.ratio = 1) +
   ggtitle("Target Gene Expression by Condition")
-ggsave(file.path(res_dir, "dotplot_target_genes.pdf"), p_dot, width = 10, height = 7)
+ggsave(file.path(fig_dir, "dotplot_target_genes.pdf"), p_dot, width = 10, height = 7)
 
 # Split by treatment (CTRL before RNP within each condition)
 label_treat_levels <- as.vector(outer(cond_levels, c("CTRL", "RNP"), paste, sep = " | "))
@@ -144,7 +146,7 @@ p_dot_split <- DotPlot(seu_sub, features = target_genes, dot.scale = 8) +
         axis.text.y = element_text(size = 12),
         aspect.ratio = 1) +
   ggtitle("Target Gene Expression by Condition x Treatment")
-ggsave(file.path(res_dir, "dotplot_target_genes_by_treatment.pdf"), p_dot_split,
+ggsave(file.path(fig_dir, "dotplot_target_genes_by_treatment.pdf"), p_dot_split,
        width = 14, height = 8)
 
 # --- 4. VlnPlot: Target Gene Expression ---
@@ -156,7 +158,7 @@ p_vln <- VlnPlot(seu_sub, features = target_genes, split.by = "treatment",
         axis.title = element_text(size = 12),
         plot.title = element_text(size = 13))
 p_vln <- p_vln + plot_annotation(title = "Target Gene Expression: CTRL vs RNP")
-ggsave(file.path(res_dir, "vlnplot_target_genes.pdf"), p_vln, width = 16, height = 12)
+ggsave(file.path(fig_dir, "vlnplot_target_genes.pdf"), p_vln, width = 16, height = 12)
 
 # --- 5. Quantitative Summary Table ---
 # Compute percent expressing and mean expression per condition per gene
@@ -184,9 +186,11 @@ for (gene in target_genes) {
   }
 }
 quant_df <- do.call(rbind, quant_list)
-write.csv(quant_df, file.path(res_dir, "target_gene_quantification.csv"), row.names = FALSE)
+write.csv(quant_df, file.path(out_dir, "target_gene_quantification.csv"), row.names = FALSE)
 
 cat("\n=== Target Gene Expression Summary ===\n")
 print(quant_df %>% filter(gene == "NBN") %>% arrange(condition, treatment))
 
-cat("\nStep 01 complete. Results in:", res_dir, "\n")
+cat("\nStep 01 complete.\n")
+cat("Tables written to:", out_dir, "\n")
+cat("Figures written to:", fig_dir, "\n")

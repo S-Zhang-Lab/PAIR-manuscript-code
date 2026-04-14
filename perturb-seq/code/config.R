@@ -57,9 +57,11 @@ if (!dir.exists(DATA_ROOT)) {
 }
 
 # Derived paths — edit DATA_ROOT (in config.local.R) to move everything.
-DATA_DIR   <- file.path(DATA_ROOT, "data")
-OBJS_DIR   <- file.path(DATA_DIR, "objs")
-RES_DIR    <- file.path(DATA_ROOT, "res")
+DATA_DIR    <- file.path(DATA_ROOT, "data")
+OBJS_DIR    <- file.path(DATA_DIR, "objs")
+RES_DIR     <- file.path(DATA_ROOT, "res")
+OUTPUT_DIR  <- file.path(DATA_ROOT, "output")   # tabular results (CSV/TSV)
+FIGURES_DIR <- file.path(DATA_ROOT, "figures")  # all plot files (PDF/PNG/SVG)
 
 SEU_RAW    <- file.path(OBJS_DIR, "raw_seu_with_hto_pair_tags.qs")
 SEU_PREP   <- file.path(OBJS_DIR, "seu_prep.qs")
