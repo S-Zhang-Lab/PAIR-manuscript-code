@@ -43,7 +43,7 @@ dir.create(fig_dir, recursive = TRUE, showWarnings = FALSE)
 
 # --- Load ---
 cat("Loading seu_prep.qs...\n")
-seu <- qread(file.path(data_dir, "seu_prep.qs"))
+seu <- qread(SEU_PREP)
 cat("Input:", ncol(seu), "cells,", nrow(seu), "genes\n")
 
 # --- Pre-QC summary ---
@@ -227,7 +227,7 @@ ggsave(file.path(fig_dir, "qc_violin_post_qc.pdf"), p_vln_after, width = 14, hei
 
 # --- Save ---
 cat("Saving filtered object...\n")
-qsave(seu_filt, file.path(data_dir, "seu_qc.qs"))
+qsave(seu_filt, SEU_QC)
 
 # --- Summary report ---
 post_qc_summary <- data.frame(
@@ -263,6 +263,6 @@ summary_text <- paste0(
 
 writeLines(summary_text, file.path(out_dir, "qc_summary.txt"))
 cat(summary_text)
-cat("\nDone. Saved to:", file.path(data_dir, "seu_qc.qs"), "\n")
+cat("\nDone. Saved to:", SEU_QC, "\n")
 cat("Tables written to:", out_dir, "\n")
 cat("Figures written to:", fig_dir, "\n")

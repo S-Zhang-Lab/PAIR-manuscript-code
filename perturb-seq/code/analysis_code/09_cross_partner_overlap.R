@@ -29,9 +29,9 @@ dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
 dir.create(fig_dir, showWarnings = FALSE, recursive = TRUE)
 
 # ── 1. Load Tier3 DE results ──────────────────────────────────────────────────
-tp53bp1 <- read.csv(file.path(RES_DIR, "04_tier3/Tier3_TP53BP1_DE.csv"))
-xrcc6 <- read.csv(file.path(RES_DIR, "04_tier3/Tier3_XRCC6_DE.csv"))
-polq <- read.csv(file.path(RES_DIR, "04_tier3/Tier3_POLQ_DE.csv"))
+tp53bp1 <- read.csv(file.path(OUTPUT_DIR, "04_tier3/Tier3_TP53BP1_DE.csv"))
+xrcc6 <- read.csv(file.path(OUTPUT_DIR, "04_tier3/Tier3_XRCC6_DE.csv"))
+polq <- read.csv(file.path(OUTPUT_DIR, "04_tier3/Tier3_POLQ_DE.csv"))
 
 # Use lenient thresholds first; if very few genes, fall back
 get_sig_genes <- function(df, fc_thresh = 0.5, pval_thresh = 0.05) {

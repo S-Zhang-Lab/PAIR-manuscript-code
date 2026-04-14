@@ -36,7 +36,7 @@ dir.create(fig_dir, recursive = TRUE, showWarnings = FALSE)
 
 # --- Load QC-filtered object ---
 cat("Loading seu_qc.qs...\n")
-seu <- qread(file.path(base_dir, "data", "seu_qc.qs"))
+seu <- qread(SEU_QC)
 cat("Cells:", ncol(seu), "| Genes:", nrow(seu), "\n")
 
 # --- Define target genes and conditions ---

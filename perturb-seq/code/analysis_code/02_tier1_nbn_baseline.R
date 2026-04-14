@@ -35,7 +35,7 @@ dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 dir.create(fig_dir, recursive = TRUE, showWarnings = FALSE)
 
 cat("Loading seu_qc.qs...\n")
-seu <- qread(file.path(base_dir, "data", "seu_qc.qs"))
+seu <- qread(SEU_QC)
 
 # --- Define groups ---
 # NBN activation group: CTRL cells with NBN_CRISPRa_NT_CasRx
