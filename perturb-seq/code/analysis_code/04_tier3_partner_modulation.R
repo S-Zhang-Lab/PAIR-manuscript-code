@@ -24,12 +24,21 @@ library(patchwork)
 
 set.seed(42)
 
-base_dir <- "/Users/david/Desktop/Data_ana/Siyuan/PAIR-perturb-seq_2025-10/AnalysisBySZ"
-res_dir <- file.path(base_dir, "res", "04_tier3")
+# --- Source config.R (sets DATA_ROOT, RES_DIR, SEU_QC; see code/config.R) ---
+if (file.exists("code/config.R")) {
+  source("code/config.R")                 # run from repo/
+} else if (file.exists("../config.R")) {
+  source("../config.R")                   # run from repo/code/analysis_code/
+} else {
+  stop("config.R not found. Run from repo/ or repo/code/analysis_code/.")
+}
+# ---------------------------------------------------------------------------
+
+res_dir <- file.path(RES_DIR, "04_tier3")
 dir.create(res_dir, recursive = TRUE, showWarnings = FALSE)
 
 cat("Loading seu_qc.qs...\n")
-seu <- qread(file.path(base_dir, "data", "seu_qc.qs"))
+seu <- qread(SEU_QC)
 
 # --- Subset to RNP-treated, NBN-CRISPRa cells ---
 nbn_tags <- c(

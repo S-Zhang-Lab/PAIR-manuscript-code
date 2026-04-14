@@ -23,8 +23,18 @@ library(dplyr)
 
 set.seed(42)
 
+# --- Source config.R (sets DATA_ROOT, DATA_DIR, RES_DIR; see code/config.R) -
+if (file.exists("code/config.R")) {
+  source("code/config.R")                 # run from repo/
+} else if (file.exists("../config.R")) {
+  source("../config.R")                   # run from repo/code/analysis_code/
+} else {
+  stop("config.R not found. Run from repo/ or repo/code/analysis_code/.")
+}
+# ---------------------------------------------------------------------------
+
 # --- Paths ---
-base_dir  <- "."
+base_dir  <- DATA_ROOT
 data_dir  <- file.path(base_dir, "data")
 res_dir   <- file.path(base_dir, "res", "00_qc")
 dir.create(res_dir, recursive = TRUE, showWarnings = FALSE)

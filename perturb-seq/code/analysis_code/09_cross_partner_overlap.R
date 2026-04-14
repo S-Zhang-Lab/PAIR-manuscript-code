@@ -12,15 +12,24 @@ library(stringr)
 library(UpSetR)
 library(fgsea)
 
-# Output directories
-BASE <- "/Users/S208205/Library/CloudStorage/Box-Box/S.Zhang_Lab/UTSW/01_Manuscripts/CC_Manuscript_PAIR/UND_collabration/2025-10-PAIR-perturb-seq/PAIR-perturb-seq_2025-10_SZ/03-07-26"
-OUT <- file.path(BASE, "res/09_cross_partner_overlap")
+# --- Source config.R (sets DATA_ROOT, RES_DIR, DATA_DIR; see code/config.R) --
+if (file.exists("code/config.R")) {
+  source("code/config.R")                 # run from repo/
+} else if (file.exists("../config.R")) {
+  source("../config.R")                   # run from repo/code/analysis_code/
+} else {
+  stop("config.R not found. Run from repo/ or repo/code/analysis_code/.")
+}
+# ---------------------------------------------------------------------------
+
+# Output directory
+OUT <- file.path(RES_DIR, "09_cross_partner_overlap")
 dir.create(OUT, showWarnings = FALSE, recursive = TRUE)
 
 # ── 1. Load Tier3 DE results ──────────────────────────────────────────────────
-tp53bp1 <- read.csv(file.path(BASE, "res/04_tier3/Tier3_TP53BP1_DE.csv"))
-xrcc6 <- read.csv(file.path(BASE, "res/04_tier3/Tier3_XRCC6_DE.csv"))
-polq <- read.csv(file.path(BASE, "res/04_tier3/Tier3_POLQ_DE.csv"))
+tp53bp1 <- read.csv(file.path(RES_DIR, "04_tier3/Tier3_TP53BP1_DE.csv"))
+xrcc6 <- read.csv(file.path(RES_DIR, "04_tier3/Tier3_XRCC6_DE.csv"))
+polq <- read.csv(file.path(RES_DIR, "04_tier3/Tier3_POLQ_DE.csv"))
 
 # Use lenient thresholds first; if very few genes, fall back
 get_sig_genes <- function(df, fc_thresh = 0.5, pval_thresh = 0.05) {
@@ -130,7 +139,7 @@ print(class_summary)
 write.csv(upset_df, file.path(OUT, "A4_gene_classes.csv"), row.names = FALSE)
 
 # ── 5. fgsea on each gene class ───────────────────────────────────────────────
-pathways <- readRDS(file.path(BASE, "data/pathways/hallmark_pathways.rds"))
+pathways <- readRDS(file.path(DATA_DIR, "pathways/hallmark_pathways.rds"))
 
 # Build ranked gene list per class from combined FC
 all_de <- bind_rows(
@@ -243,5 +252,5 @@ md <- sprintf(
   paste(capture.output(round(jmat, 3)), collapse = "\n"),
   n_core, n_tp_uniq, n_xr_uniq, n_pq_uniq
 )
-writeLines(md, file.path(BASE, "docs/A4_cross_partner_overlap_summary.md"))
-cat("Done. Summary -> docs/A4_cross_partner_overlap_summary.md\n")
+writeLines(md, file.path(OUT, "A4_cross_partner_overlap_summary.md"))
+cat("Done. Summary -> ", file.path(OUT, "A4_cross_partner_overlap_summary.md"), "\n")

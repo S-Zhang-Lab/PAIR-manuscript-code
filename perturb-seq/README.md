@@ -45,3 +45,70 @@ Box: <https://utsw.box.com/s/msqf44ib1ozl3jw2w5skw3be7d6kinqn>
 ## HTOs and PAIRs information
 
 Please refer to xls info sheet [here](/info/250918_information.xlsx).
+
+## Local setup
+
+Raw and processed data are not tracked in this repo — they live in the Box
+folder linked above. The scripts in `code/` and `code/analysis_code/` find
+data via a small config file:
+
+1. **Clone the repo.** If you keep the clone inside a cloud-synced folder
+   (Box, Dropbox, iCloud), exclude `.git/` from sync to avoid packfile
+   corruption.
+
+2. **Point the code at your data.** Copy `code/config.R` to
+   `code/config.local.R` and edit `DATA_ROOT` to the absolute path of your
+   local data directory. `config.local.R` is gitignored so each user can
+   have their own path.
+
+   ```r
+   # code/config.local.R
+   DATA_ROOT <- "/path/to/PAIR-perturb-seq_2025-10_SZ"
+   ```
+
+3. **Data layout under `DATA_ROOT`.** The scripts expect:
+
+   ```
+   DATA_ROOT/
+   ├── data/
+   │   ├── objs/
+   │   │   ├── raw_seu_with_hto_pair_tags.qs
+   │   │   ├── seu_prep.qs           # produced by code/seurat_prep.R
+   │   │   └── seu_qc.qs             # produced by code/analysis_code/00_qc_filtering.R
+   │   ├── mRNA_raw/                 # raw 10x CellRanger mRNA output
+   │   ├── HTO_raw/                  # raw 10x HTO counts
+   │   ├── PAIR_output/              # PAIR sparse UMI matrices
+   │   ├── infercnv/                 # CNV analysis inputs
+   │   ├── pathways/
+   │   │   └── hallmark_pathways.rds
+   │   └── data_info/                # metadata xlsx files
+   └── res/                          # all analysis outputs land here
+       ├── 00_qc/ 01_validation/ 02_tier1/ ... 12_cell_heterogeneity/
+   ```
+
+4. **Install R packages.**
+   `Rscript code/analysis_code/00_check_and_install_packages.R`
+
+5. **Run the pipeline.** Scripts assume you start in the repo root:
+
+   ```bash
+   cd repo
+   Rscript code/analysis_code/00_qc_filtering.R          # seu_prep → seu_qc
+   Rscript code/analysis_code/01_perturbation_validation.R
+   Rscript code/analysis_code/02_tier1_nbn_baseline.R
+   # … 03 through 12
+   ```
+
+### Contributing: no hardcoded paths
+
+New scripts **must not** hardcode user-specific paths. Always:
+
+```r
+source("code/config.R")  # or "../config.R" from code/analysis_code/
+seu <- qread(SEU_QC)                    # not "/Users/me/.../seu_qc.qs"
+out <- file.path(RES_DIR, "my_step")    # not "./res/my_step" or "/Users/me/.../res/"
+```
+
+Pull requests that introduce `base_dir <- "/Users/…"`, `BASE <-
+"/Users/…"`, or similar will be rejected. If you need a new derived path,
+add it to `code/config.R` as a new variable.
