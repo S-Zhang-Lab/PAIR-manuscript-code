@@ -1,0 +1,7 @@
+id,name,sequence,read,pattern,feature_type
+C0254_cmo,RNP1_cmo,AGTAAGTTCAGCGTA,R2,5PNNNNNNNNNN(BC),Multiplexing Capture
+C0255_cmo,RNP2_cmo,AAGTATCGTTTCGCA,R2,5PNNNNNNNNNN(BC),Multiplexing Capture
+C0256_cmo,RNP3_cmo,GGTTGCCAGATGTCA,R2,5PNNNNNNNNNN(BC),Multiplexing Capture
+C0257_cmo,Ctl1_cmo,TGTCTTTCCTGCCAG,R2,5PNNNNNNNNNN(BC),Multiplexing Capture
+C0258_cmo,Ctl2_cmo,CTCCTCTGCAATTAC,R2,5PNNNNNNNNNN(BC),Multiplexing Capture
+C0259_cmo,Ctl3_cmo,CAGTAGTCACGGTCA,R2,5PNNNNNNNNNN(BC),Multiplexing Capture
