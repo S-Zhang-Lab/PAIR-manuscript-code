@@ -4,7 +4,8 @@
 #
 # Input:  res/03_tier2/Tier2_interaction_table.csv
 #         res/04_tier3/Tier3_*_DE.csv
-# Output: res/05_gsea/ (enrichment tables, GSEA plots)
+# Output: output/05_fgsea/ (enrichment tables)
+#         figures/05_fgsea/ (GSEA plots)
 #
 # Runs fgsea on:
 #   1) Tier 2 interaction scores (ranked by interaction_score)
@@ -31,8 +32,10 @@ if (file.exists("code/config.R")) {
 # ---------------------------------------------------------------------------
 
 base_dir <- DATA_ROOT
-res_dir <- file.path(base_dir, "res", "05_gsea")
-dir.create(res_dir, recursive = TRUE, showWarnings = FALSE)
+out_dir <- file.path(OUTPUT_DIR, "05_fgsea")
+fig_dir <- file.path(FIGURES_DIR, "05_fgsea")
+dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(fig_dir, recursive = TRUE, showWarnings = FALSE)
 
 # --- Load MSigDB Hallmark gene sets ---
 cat("Loading MSigDB Hallmark gene sets...\n")
@@ -48,7 +51,7 @@ dir.create(pathway_dir, recursive = TRUE, showWarnings = FALSE)
 saveRDS(pathways, file.path(pathway_dir, "hallmark_pathways.rds"))
 
 # --- Helper: run fgsea and produce output ---
-run_fgsea_analysis <- function(ranks, pathways, prefix, title_str, res_dir) {
+run_fgsea_analysis <- function(ranks, pathways, prefix, title_str, out_dir, fig_dir) {
   # Remove NAs and duplicates
   ranks <- ranks[!is.na(ranks)]
   ranks <- ranks[!duplicated(names(ranks))]
@@ -71,7 +74,7 @@ run_fgsea_analysis <- function(ranks, pathways, prefix, title_str, res_dir) {
   # Convert leadingEdge list column to string for CSV export
   fgsea_export <- fgsea_res %>%
     mutate(leadingEdge = sapply(leadingEdge, paste, collapse = ";"))
-  write.csv(fgsea_export, file.path(res_dir, paste0(prefix, "_fgsea_results.csv")),
+  write.csv(fgsea_export, file.path(out_dir, paste0(prefix, "_fgsea_results.csv")),
     row.names = FALSE
   )
 
@@ -102,7 +105,7 @@ run_fgsea_analysis <- function(ranks, pathways, prefix, title_str, res_dir) {
         y = "", fill = "Direction"
       )
 
-    ggsave(file.path(res_dir, paste0(prefix, "_NES_barplot.pdf")),
+    ggsave(file.path(fig_dir, paste0(prefix, "_NES_barplot.pdf")),
       p_bar,
       width = 10, height = max(5, nrow(top_pathways) * 0.35 + 2)
     )
@@ -111,7 +114,7 @@ run_fgsea_analysis <- function(ranks, pathways, prefix, title_str, res_dir) {
   # GSEA table plot for top pathways (using grid, not ggsave)
   top_n_paths <- head(fgsea_res[order(fgsea_res$pval), ]$pathway, 10)
   if (length(top_n_paths) > 0) {
-    pdf(file.path(res_dir, paste0(prefix, "_gsea_table.pdf")), width = 12, height = 8)
+    pdf(file.path(fig_dir, paste0(prefix, "_gsea_table.pdf")), width = 12, height = 8)
     plotGseaTable(pathways[top_n_paths], ranks, fgsea_res, gseaParam = 0.5)
     dev.off()
   }
@@ -121,14 +124,14 @@ run_fgsea_analysis <- function(ranks, pathways, prefix, title_str, res_dir) {
 
 # --- 1. Tier 2: Interaction Score GSEA ---
 cat("\n=== Tier 2 Interaction Score GSEA ===\n")
-tier2 <- read.csv(file.path(base_dir, "res", "03_tier2", "Tier2_interaction_table.csv"))
+tier2 <- read.csv(file.path(OUTPUT_DIR, "03_tier2", "Tier2_interaction_table.csv"))
 
 ranks_tier2 <- setNames(tier2$interaction_score, tier2$gene)
 fgsea_tier2 <- run_fgsea_analysis(
   ranks_tier2, pathways,
   "Tier2_interaction",
   "Tier 2: GSEA on Interaction Scores (NBN vs WT Stress)",
-  res_dir
+  out_dir, fig_dir
 )
 
 # --- 2. Tier 3: Partner DE GSEA ---
@@ -138,7 +141,7 @@ fgsea_tier3 <- list()
 
 for (partner in partners) {
   cat("\n--- Partner:", partner, "---\n")
-  de_file <- file.path(base_dir, "res", "04_tier3", paste0("Tier3_", partner, "_DE.csv"))
+  de_file <- file.path(OUTPUT_DIR, "04_tier3", paste0("Tier3_", partner, "_DE.csv"))
 
   if (!file.exists(de_file)) {
     cat("  WARNING: DE file not found:", de_file, "\n")
@@ -152,7 +155,7 @@ for (partner in partners) {
     ranks, pathways,
     paste0("Tier3_", partner),
     paste0("Tier 3: GSEA - ", partner, " KD vs NT (RNP, NBN)"),
-    res_dir
+    out_dir, fig_dir
   )
 }
 
@@ -199,7 +202,7 @@ if (length(sig_pathways) >= 2) {
 
   # Heatmap
   library(pheatmap)
-  pdf(file.path(res_dir, "GSEA_cross_comparison_heatmap.pdf"),
+  pdf(file.path(fig_dir, "GSEA_cross_comparison_heatmap.pdf"),
     width = 8, height = max(5, length(sig_pathways) * 0.4 + 2)
   )
   pheatmap(nes_sig,
@@ -218,6 +221,6 @@ if (length(sig_pathways) >= 2) {
 }
 
 # Save NES matrix
-write.csv(nes_mat, file.path(res_dir, "GSEA_NES_matrix.csv"))
+write.csv(nes_mat, file.path(out_dir, "GSEA_NES_matrix.csv"))
 
-cat("\nStep 05 complete. Results in:", res_dir, "\n")
+cat("\nStep 05 complete. Tables in:", out_dir, "| Figures in:", fig_dir, "\n")

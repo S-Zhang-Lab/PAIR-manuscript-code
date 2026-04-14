@@ -33,11 +33,13 @@ if (file.exists("code/config.R")) {
 # ---------------------------------------------------------------------------
 
 base_dir <- DATA_ROOT
-res_dir <- file.path(base_dir, "res", "03_tier2")
-dir.create(res_dir, recursive = TRUE, showWarnings = FALSE)
+out_dir <- file.path(OUTPUT_DIR, "03_tier2")
+fig_dir <- file.path(FIGURES_DIR, "03_tier2")
+dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(fig_dir, recursive = TRUE, showWarnings = FALSE)
 
 cat("Loading seu_qc.qs...\n")
-seu <- qread(file.path(base_dir, "data", "seu_qc.qs"))
+seu <- qread(SEU_QC)
 
 # --- Define subsets ---
 Idents(seu) <- "assigned_tag"
@@ -92,8 +94,8 @@ de_nbn$gene <- rownames(de_nbn)
 cat("Vector B: ", nrow(de_nbn), " genes tested\n")
 
 # Save individual DE results
-write.csv(de_wt, file.path(res_dir, "Tier2_VectorA_WT_stress_DE.csv"), row.names = FALSE)
-write.csv(de_nbn, file.path(res_dir, "Tier2_VectorB_NBN_stress_DE.csv"), row.names = FALSE)
+write.csv(de_wt, file.path(out_dir, "Tier2_VectorA_WT_stress_DE.csv"), row.names = FALSE)
+write.csv(de_nbn, file.path(out_dir, "Tier2_VectorB_NBN_stress_DE.csv"), row.names = FALSE)
 
 # --- Merge with full outer join ---
 # IMPORTANT: Use full outer join to keep genes detected in only one comparison
@@ -131,7 +133,7 @@ merged$p_plot <- ifelse(is.na(merged$min_p) | merged$min_p == 0,
   min_nonzero_p * 0.1, merged$min_p
 )
 
-write.csv(merged, file.path(res_dir, "Tier2_interaction_table.csv"), row.names = FALSE)
+write.csv(merged, file.path(out_dir, "Tier2_interaction_table.csv"), row.names = FALSE)
 
 # --- Scatter Plot: WT vs NBN stress response ---
 # Label top interaction genes
@@ -170,7 +172,7 @@ p_scatter <- ggplot(merged, aes(x = avg_log2FC_WT, y = avg_log2FC_NBN, color = c
     color = ""
   )
 
-ggsave(file.path(res_dir, "Tier2_interaction_scatter.pdf"), p_scatter, width = 7, height = 7)
+ggsave(file.path(fig_dir, "Tier2_interaction_scatter.pdf"), p_scatter, width = 7, height = 7)
 
 # --- Volcano-style plot of interaction scores ---
 p_volcano <- ggplot(merged, aes(x = interaction_score, y = -log10(p_plot), color = class)) +
@@ -193,7 +195,7 @@ p_volcano <- ggplot(merged, aes(x = interaction_score, y = -log10(p_plot), color
     y = "-Log10(min P-value)", color = ""
   )
 
-ggsave(file.path(res_dir, "Tier2_interaction_volcano.pdf"), p_volcano, width = 7, height = 7)
+ggsave(file.path(fig_dir, "Tier2_interaction_volcano.pdf"), p_volcano, width = 7, height = 7)
 
 # --- Summary ---
 cat("\n=== Tier 2 Summary ===\n")
@@ -209,4 +211,6 @@ cat("Merged (full outer join):", nrow(merged), "genes\n")
 cat("Hyper-responsive in NBN (score > 0.5):", sum(merged$class == "Hyper-responsive in NBN"), "\n")
 cat("Fails to respond in NBN (score < -0.5):", sum(merged$class == "Fails to respond in NBN"), "\n")
 
-cat("\nStep 03 complete. Results in:", res_dir, "\n")
+cat("\nStep 03 complete.\n")
+cat("Tables written to:", out_dir, "\n")
+cat("Figures written to:", fig_dir, "\n")

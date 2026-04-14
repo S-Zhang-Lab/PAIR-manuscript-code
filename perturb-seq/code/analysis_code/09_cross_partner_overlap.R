@@ -22,14 +22,16 @@ if (file.exists("code/config.R")) {
 }
 # ---------------------------------------------------------------------------
 
-# Output directory
-OUT <- file.path(RES_DIR, "09_cross_partner_overlap")
-dir.create(OUT, showWarnings = FALSE, recursive = TRUE)
+# Output directories
+out_dir <- file.path(OUTPUT_DIR, "09_cross_partner_overlap")
+fig_dir <- file.path(FIGURES_DIR, "09_cross_partner_overlap")
+dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
+dir.create(fig_dir, showWarnings = FALSE, recursive = TRUE)
 
 # ── 1. Load Tier3 DE results ──────────────────────────────────────────────────
-tp53bp1 <- read.csv(file.path(RES_DIR, "04_tier3/Tier3_TP53BP1_DE.csv"))
-xrcc6 <- read.csv(file.path(RES_DIR, "04_tier3/Tier3_XRCC6_DE.csv"))
-polq <- read.csv(file.path(RES_DIR, "04_tier3/Tier3_POLQ_DE.csv"))
+tp53bp1 <- read.csv(file.path(OUTPUT_DIR, "04_tier3/Tier3_TP53BP1_DE.csv"))
+xrcc6 <- read.csv(file.path(OUTPUT_DIR, "04_tier3/Tier3_XRCC6_DE.csv"))
+polq <- read.csv(file.path(OUTPUT_DIR, "04_tier3/Tier3_POLQ_DE.csv"))
 
 # Use lenient thresholds first; if very few genes, fall back
 get_sig_genes <- function(df, fc_thresh = 0.5, pval_thresh = 0.05) {
@@ -60,7 +62,7 @@ upset_df <- data.frame(
   POLQ     = as.integer(all_genes %in% genes_polq)
 )
 
-pdf(file.path(OUT, "A4_upset_plot.pdf"), width = 8, height = 5)
+pdf(file.path(fig_dir, "A4_upset_plot.pdf"), width = 8, height = 5)
 upset(
   upset_df,
   sets = c("TP53BP1", "XRCC6", "POLQ"),
@@ -92,12 +94,12 @@ for (i in pnames) for (j in pnames) jmat[i, j] <- jaccard(partners[[i]], partner
 
 cat("\nJaccard similarity matrix:\n")
 print(round(jmat, 3))
-write.csv(jmat, file.path(OUT, "A4_jaccard_matrix.csv"))
+write.csv(jmat, file.path(out_dir, "A4_jaccard_matrix.csv"))
 
 # Plot Jaccard heatmap
 jdf <- as.data.frame(as.table(jmat)) %>% rename(Partner1 = Var1, Partner2 = Var2, Jaccard = Freq)
 
-pdf(file.path(OUT, "A4_jaccard_heatmap.pdf"), width = 5, height = 4)
+pdf(file.path(fig_dir, "A4_jaccard_heatmap.pdf"), width = 5, height = 4)
 ggplot(jdf, aes(x = Partner1, y = Partner2, fill = Jaccard)) +
   geom_tile(color = "white", linewidth = 0.5) +
   geom_text(aes(label = round(Jaccard, 3)), size = 4) +
@@ -136,7 +138,7 @@ class_summary <- upset_df %>%
   arrange(desc(n))
 cat("\nGene class distribution:\n")
 print(class_summary)
-write.csv(upset_df, file.path(OUT, "A4_gene_classes.csv"), row.names = FALSE)
+write.csv(upset_df, file.path(out_dir, "A4_gene_classes.csv"), row.names = FALSE)
 
 # ── 5. fgsea on each gene class ───────────────────────────────────────────────
 pathways <- readRDS(file.path(DATA_DIR, "pathways/hallmark_pathways.rds"))
@@ -186,9 +188,9 @@ gsea_results <- map2_dfr(
 )
 
 if (nrow(gsea_results) > 0) {
-  write.csv(gsea_results %>% select(-leadingEdge), file.path(OUT, "A4_class_fgsea.csv"), row.names = FALSE)
+  write.csv(gsea_results %>% select(-leadingEdge), file.path(out_dir, "A4_class_fgsea.csv"), row.names = FALSE)
 
-  pdf(file.path(OUT, "A4_class_fgsea_NES.pdf"), width = 10, height = max(4, nrow(gsea_results) * 0.3 + 2))
+  pdf(file.path(fig_dir, "A4_class_fgsea_NES.pdf"), width = 10, height = max(4, nrow(gsea_results) * 0.3 + 2))
   p <- ggplot(gsea_results, aes(x = NES, y = reorder(pathway, NES), fill = gene_class)) +
     geom_col(alpha = 0.85) +
     geom_vline(xintercept = 0, linetype = "dashed", color = "gray50") +
@@ -252,5 +254,5 @@ md <- sprintf(
   paste(capture.output(round(jmat, 3)), collapse = "\n"),
   n_core, n_tp_uniq, n_xr_uniq, n_pq_uniq
 )
-writeLines(md, file.path(OUT, "A4_cross_partner_overlap_summary.md"))
-cat("Done. Summary -> ", file.path(OUT, "A4_cross_partner_overlap_summary.md"), "\n")
+writeLines(md, file.path(out_dir, "A4_cross_partner_overlap_summary.md"))
+cat("Done. Tables -> ", out_dir, " | Figures -> ", fig_dir, "\n")

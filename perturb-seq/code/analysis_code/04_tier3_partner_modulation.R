@@ -34,8 +34,10 @@ if (file.exists("code/config.R")) {
 }
 # ---------------------------------------------------------------------------
 
-res_dir <- file.path(RES_DIR, "04_tier3")
-dir.create(res_dir, recursive = TRUE, showWarnings = FALSE)
+out_dir <- file.path(OUTPUT_DIR, "04_tier3")
+fig_dir <- file.path(FIGURES_DIR, "04_tier3")
+dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(fig_dir, recursive = TRUE, showWarnings = FALSE)
 
 cat("Loading seu_qc.qs...\n")
 seu <- qread(SEU_QC)
@@ -105,7 +107,7 @@ for (partner in names(comparisons)) {
   cat("Significant (adj.P < 0.05 & |FC| > 0.5):", n_sig_fc, "\n")
 
   # Save individual DE table
-  write.csv(de, file.path(res_dir, paste0("Tier3_", partner, "_DE.csv")), row.names = FALSE)
+  write.csv(de, file.path(out_dir, paste0("Tier3_", partner, "_DE.csv")), row.names = FALSE)
   all_de[[partner]] <- de
 
   # --- Volcano plot ---
@@ -161,7 +163,7 @@ for (partner in names(comparisons)) {
     )
 
   volcano_plots[[partner]] <- p
-  ggsave(file.path(res_dir, paste0("Tier3_Volcano_", partner, ".pdf")),
+  ggsave(file.path(fig_dir, paste0("Tier3_Volcano_", partner, ".pdf")),
     p,
     width = 7, height = 7
   )
@@ -170,11 +172,11 @@ for (partner in names(comparisons)) {
 # --- Combined volcano panel ---
 p_combined <- wrap_plots(volcano_plots, ncol = 3) +
   plot_annotation(title = "Tier 3: Partner Modulation in RNP-Stressed NBN Cells")
-ggsave(file.path(res_dir, "Tier3_Volcano_combined.pdf"), p_combined, width = 22, height = 8)
+ggsave(file.path(fig_dir, "Tier3_Volcano_combined.pdf"), p_combined, width = 22, height = 8)
 
 # --- Combined DE table ---
 all_de_df <- do.call(rbind, all_de)
-write.csv(all_de_df, file.path(res_dir, "Tier3_all_partners_DE.csv"), row.names = FALSE)
+write.csv(all_de_df, file.path(out_dir, "Tier3_all_partners_DE.csv"), row.names = FALSE)
 
 # --- Summary ---
 cat("\n=== Tier 3 Summary ===\n")
@@ -189,4 +191,6 @@ for (partner in names(comparisons)) {
   )
 }
 
-cat("\nStep 04 complete. Results in:", res_dir, "\n")
+cat("\nStep 04 complete.\n")
+cat("Tables written to:", out_dir, "\n")
+cat("Figures written to:", fig_dir, "\n")

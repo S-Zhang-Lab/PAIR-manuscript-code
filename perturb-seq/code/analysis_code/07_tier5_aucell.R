@@ -3,7 +3,8 @@
 # PAIR-Perturb-Seq Analysis Pipeline
 #
 # Input:  data/seu_qc.qs, data/pathways/hallmark_pathways.rds
-# Output: res/07_tier5/ (AUCell dot plots, activity matrices)
+# Output: output/07_tier5/ (AUCell activity matrices)
+#         figures/07_tier5/ (AUCell dot plots)
 #
 # Uses rank-based AUCell scoring to compute per-cell pathway activity,
 # then summarizes as per-condition dot plots showing:
@@ -31,11 +32,13 @@ if (file.exists("code/config.R")) {
 # ---------------------------------------------------------------------------
 
 base_dir <- DATA_ROOT
-res_dir <- file.path(base_dir, "res", "07_tier5")
-dir.create(res_dir, recursive = TRUE, showWarnings = FALSE)
+out_dir <- file.path(OUTPUT_DIR, "07_tier5")
+fig_dir <- file.path(FIGURES_DIR, "07_tier5")
+dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(fig_dir, recursive = TRUE, showWarnings = FALSE)
 
 cat("Loading seu_qc.qs...\n")
-seu <- qread(file.path(base_dir, "data", "seu_qc.qs"))
+seu <- qread(SEU_QC)
 
 # --- Load gene sets ---
 # Hallmark pathways
@@ -51,7 +54,7 @@ if (file.exists(hallmark_path)) {
 cat("Loaded", length(pathways), "Hallmark pathways\n")
 
 # Custom repair pathways
-repair_path <- file.path(base_dir, "res", "06_tier4", "repair_module_gene_sets.rds")
+repair_path <- file.path(OUTPUT_DIR, "06_tier4", "repair_module_gene_sets.rds")
 if (file.exists(repair_path)) {
   repair_sets <- readRDS(repair_path)
   # Prefix to distinguish from Hallmark
@@ -157,7 +160,7 @@ dot_df <- dot_df %>%
 # Replace NaN z-scores (pathways with 0 variance)
 dot_df$z_auc[is.nan(dot_df$z_auc)] <- 0
 
-write.csv(dot_df, file.path(res_dir, "aucell_summary.csv"), row.names = FALSE)
+write.csv(dot_df, file.path(out_dir, "aucell_summary.csv"), row.names = FALSE)
 
 # --- Dot Plot: Hallmark pathways ---
 cat("Generating dot plots...\n")
@@ -200,7 +203,7 @@ p_dot <- ggplot(hallmark_plot, aes(x = condition, y = pathway_clean)) +
     x = "", y = ""
   )
 
-ggsave(file.path(res_dir, "aucell_dotplot_hallmark.pdf"), p_dot,
+ggsave(file.path(fig_dir, "aucell_dotplot_hallmark.pdf"), p_dot,
   width = 16, height = max(7, length(top_pathways) * 0.4 + 3)
 )
 
@@ -234,7 +237,7 @@ p_dot_rnp <- ggplot(rnp_df, aes(x = condition, y = pathway_clean)) +
     x = "", y = ""
   )
 
-ggsave(file.path(res_dir, "aucell_dotplot_hallmark_RNP.pdf"), p_dot_rnp,
+ggsave(file.path(fig_dir, "aucell_dotplot_hallmark_RNP.pdf"), p_dot_rnp,
   width = 11, height = max(7, length(top_pathways) * 0.4 + 3)
 )
 
@@ -264,7 +267,7 @@ if (nrow(repair_df) > 0) {
       x = "", y = ""
     )
 
-  ggsave(file.path(res_dir, "aucell_dotplot_repair.pdf"), p_dot_repair, width = 14, height = 6)
+  ggsave(file.path(fig_dir, "aucell_dotplot_repair.pdf"), p_dot_repair, width = 14, height = 6)
 }
 
-cat("\nStep 07 complete. Results in:", res_dir, "\n")
+cat("\nStep 07 complete. Tables in:", out_dir, "| Figures in:", fig_dir, "\n")
