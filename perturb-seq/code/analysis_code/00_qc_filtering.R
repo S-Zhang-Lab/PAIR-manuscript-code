@@ -212,9 +212,14 @@ p_umap_treat <- DimPlot(seu_filt, group.by = "treatment", pt.size = 0.5) +
 p_umap_clust <- DimPlot(seu_filt, group.by = "seurat_clusters", label = TRUE, pt.size = 0.5) +
   ggtitle("UMAP: Clusters (Post-QC)")
 
-# UMAP by cell cycle
-p_umap_phase <- DimPlot(seu_filt, group.by = "Phase", pt.size = 0.5) +
-  ggtitle("UMAP: Cell Cycle Phase")
+if ("Phase" %in% colnames(seu_filt@meta.data)) {
+  p_umap_phase <- DimPlot(seu_filt, group.by = "Phase", pt.size = 0.5) +
+    ggtitle("UMAP: Cell Cycle Phase")
+} else {
+  p_umap_phase <- ggplot() +
+    theme_void() +
+    ggtitle("UMAP: Cell Cycle Phase not available")
+}
 
 p_umap_all <- (p_umap_tag | p_umap_treat) / (p_umap_clust | p_umap_phase)
 ggsave(file.path(fig_dir, "umap_post_qc.pdf"), p_umap_all, width = 16, height = 12)

@@ -2,13 +2,13 @@
 # Step 05: fGSEA Pathway Analysis
 # PAIR-Perturb-Seq Analysis Pipeline
 #
-# Input:  res/03_tier2/Tier2_interaction_table.csv
+# Input:  res/03_tier2/Tier2_deviation_table.csv
 #         res/04_tier3/Tier3_*_DE.csv
 # Output: output/05_fgsea/ (enrichment tables)
 #         figures/05_fgsea/ (GSEA plots)
 #
 # Runs fgsea on:
-#   1) Tier 2 interaction scores (ranked by interaction_score)
+#   1) Tier 2 deviation scores (ranked by deviation_score)
 #   2) Tier 3 partner DE results (ranked by avg_log2FC per partner)
 ##############################################################################
 
@@ -65,9 +65,11 @@ run_fgsea_analysis <- function(ranks, pathways, prefix, title_str, out_dir, fig_
     maxSize = 500
   )
 
-  fgsea_res <- fgsea_res %>% arrange(pval)
+  fgsea_res <- fgsea_res %>%
+    filter(!is.na(pathway)) %>%
+    arrange(pval)
 
-  n_sig <- sum(fgsea_res$padj < 0.05)
+  n_sig <- sum(fgsea_res$padj < 0.05, na.rm = TRUE)
   cat("  Significant pathways (padj < 0.05):", n_sig, "\n")
 
   # Save full results
@@ -122,15 +124,15 @@ run_fgsea_analysis <- function(ranks, pathways, prefix, title_str, out_dir, fig_
   return(fgsea_res)
 }
 
-# --- 1. Tier 2: Interaction Score GSEA ---
-cat("\n=== Tier 2 Interaction Score GSEA ===\n")
-tier2 <- read.csv(file.path(OUTPUT_DIR, "03_tier2", "Tier2_interaction_table.csv"))
+# --- 1. Tier 2: Deviation-score GSEA ---
+cat("\n=== Tier 2 Deviation-score GSEA ===\n")
+tier2 <- read.csv(file.path(OUTPUT_DIR, "03_tier2", "Tier2_deviation_table.csv"))
 
-ranks_tier2 <- setNames(tier2$interaction_score, tier2$gene)
+ranks_tier2 <- setNames(tier2$deviation_score, tier2$gene)
 fgsea_tier2 <- run_fgsea_analysis(
   ranks_tier2, pathways,
-  "Tier2_interaction",
-  "Tier 2: GSEA on Interaction Scores (NBN vs WT Stress)",
+  "Tier2_deviation",
+  "Tier 2: GSEA on Stress-response Deviation Scores",
   out_dir, fig_dir
 )
 
@@ -169,8 +171,8 @@ for (partner in names(fgsea_tier3)) {
   nes_list[[partner]] <- setNames(res$NES, res$pathway)
 }
 
-# Also add Tier 2 interaction
-nes_list[["Tier2_Interaction"]] <- setNames(fgsea_tier2$NES, fgsea_tier2$pathway)
+# Also add Tier 2 deviation scores
+nes_list[["Tier2_Deviation"]] <- setNames(fgsea_tier2$NES, fgsea_tier2$pathway)
 
 # Create NES matrix
 all_pathways <- unique(unlist(lapply(nes_list, names)))
@@ -191,9 +193,10 @@ for (nm in names(fgsea_tier3)) {
   res <- fgsea_tier3[[nm]]
   padj_mat[res$pathway, nm] <- res$padj
 }
-padj_mat[fgsea_tier2$pathway, "Tier2_Interaction"] <- fgsea_tier2$padj
+padj_mat[fgsea_tier2$pathway, "Tier2_Deviation"] <- fgsea_tier2$padj
 
-sig_pathways <- rownames(padj_mat)[apply(padj_mat, 1, function(x) any(x < 0.1))]
+sig_pathways <- rownames(padj_mat)[apply(padj_mat, 1, function(x) any(x < 0.1, na.rm = TRUE))]
+sig_pathways <- intersect(sig_pathways, rownames(nes_mat))
 
 if (length(sig_pathways) >= 2) {
   nes_sig <- nes_mat[sig_pathways, , drop = FALSE]

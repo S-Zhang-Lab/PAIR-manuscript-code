@@ -1,15 +1,15 @@
 ##############################################################################
-# Step 08: Phase 2 - Epistasis Analysis (Modules A-D)
+# Step 08: Phase 2 - Descriptive Combinatorial Analysis (Modules A-D)
 # PAIR-Perturb-Seq Analysis Pipeline
 #
 # Input:  data/seu_qc.qs
 # Output: output/08_phase2/ (epistasis tables)
 #         figures/08_phase2/ (heatmaps, PCA manifold, scatter plots)
 #
-# Module A: Gene-level additive model (FC residuals)
+# Module A: Gene-level RNP-context residual scoring
 # Module B: Pathway-level tau scores (AUCell-based)
 # Module C: Transcriptomic PCA manifold (pseudobulk)
-# Module D: Gatekeeper hierarchy (rescue percentages)
+# Module D: Candidate rescue percentages
 ##############################################################################
 
 library(Seurat)
@@ -68,9 +68,9 @@ condition_short <- c(
 partners <- c("TP53BP1", "XRCC6", "POLQ")
 
 ##############################################################################
-# MODULE A: Gene-level Additive Model
+# MODULE A: Gene-level RNP-context residual scoring
 ##############################################################################
-cat("\n=== MODULE A: Gene-level Additive Model ===\n")
+cat("\n=== MODULE A: Gene-level RNP-context Residual Scoring ===\n")
 
 # Compute pseudobulk using log-of-means (correct method)
 # AverageExpression returns mean of raw counts when using "RNA" counts layer
@@ -86,7 +86,7 @@ compute_log2fc <- function(seu, cells_test, cells_ref, pseudocount = 1) {
 
 # Get cells per condition x treatment
 get_cells <- function(seu, tag, treatment) {
-  colnames(seu)[seu$assigned_tag == tag & seu$treatment == treatment]
+  colnames(seu)[!is.na(seu$assigned_tag) & seu$assigned_tag == tag & seu$treatment == treatment]
 }
 
 # Focus on RNP-treated cells for stress-response epistasis
@@ -96,12 +96,6 @@ cells_rnp_nbn_53bp1 <- get_cells(seu, "NBN_CRISPRa_53BP1_CasRx", "RNP")
 cells_rnp_nbn_ku70 <- get_cells(seu, "NBN_CRISPRa_KU70_CasRx", "RNP")
 cells_rnp_nbn_pq <- get_cells(seu, "NBN_CRISPRa_PQ_CasRx", "RNP")
 
-# Also need CTRL cells for CasRx-effect proxy
-cells_ctrl_nbn_nt <- get_cells(seu, "NBN_CRISPRa_NT_CasRx", "CTRL")
-cells_ctrl_nbn_53bp1 <- get_cells(seu, "NBN_CRISPRa_53BP1_CasRx", "CTRL")
-cells_ctrl_nbn_ku70 <- get_cells(seu, "NBN_CRISPRa_KU70_CasRx", "CTRL")
-cells_ctrl_nbn_pq <- get_cells(seu, "NBN_CRISPRa_PQ_CasRx", "CTRL")
-
 cat("RNP cell counts:\n")
 cat("  NT_NT:", length(cells_rnp_nt_nt), "\n")
 cat("  NBN_NT:", length(cells_rnp_nbn_nt), "\n")
@@ -110,10 +104,10 @@ cat("  NBN_XRCC6:", length(cells_rnp_nbn_ku70), "\n")
 cat("  NBN_PQ:", length(cells_rnp_nbn_pq), "\n")
 
 # For each partner, compute:
-# FC_A = log2FC(RNP_NBN_NT / RNP_NT_NT) — CRISPRa effect under stress
-# FC_B = log2FC(CTRL_NBN_X / CTRL_NBN_NT) — CasRx effect (proxy, within NBN context)
-# FC_AB = log2FC(RNP_NBN_X / RNP_NT_NT) — Combined dual perturbation
-# Residual = FC_AB - (FC_A + FC_B)
+# FC_A = log2FC(RNP_NBN_NT / RNP_NT_NT) — baseline NBN shift under stress
+# FC_AB = log2FC(RNP_NBN_X / RNP_NT_NT) — dual-perturbation shift under stress
+# residual_score = FC_AB - FC_A = log2FC(RNP_NBN_X / RNP_NBN_NT)
+# This is a fully RNP-context descriptive residual score.
 
 FC_A <- compute_log2fc(seu, cells_rnp_nbn_nt, cells_rnp_nt_nt)
 
@@ -121,11 +115,6 @@ partner_cells_rnp <- list(
   "TP53BP1" = cells_rnp_nbn_53bp1,
   "XRCC6"   = cells_rnp_nbn_ku70,
   "POLQ"    = cells_rnp_nbn_pq
-)
-partner_cells_ctrl <- list(
-  "TP53BP1" = cells_ctrl_nbn_53bp1,
-  "XRCC6"   = cells_ctrl_nbn_ku70,
-  "POLQ"    = cells_ctrl_nbn_pq
 )
 
 # Filter to variable features for meaningful analysis
@@ -139,40 +128,34 @@ epistasis_results <- list()
 for (partner in partners) {
   cat("\n--- Partner:", partner, "---\n")
 
-  FC_B <- compute_log2fc(seu, partner_cells_ctrl[[partner]], cells_ctrl_nbn_nt)
   FC_AB <- compute_log2fc(seu, partner_cells_rnp[[partner]], cells_rnp_nt_nt)
+  residual_score <- FC_AB - FC_A
 
-  # Compute residual
-  residual <- FC_AB - (FC_A + FC_B)
-
-  # Combine into data frame (variable features only)
-  genes <- intersect(var_features, names(residual))
+  threshold <- 0.3
+  genes <- intersect(var_features, names(residual_score))
   epi_df <- data.frame(
     gene = genes,
     FC_A = FC_A[genes],
-    FC_B = FC_B[genes],
     FC_AB = FC_AB[genes],
-    expected = FC_A[genes] + FC_B[genes],
-    residual = residual[genes],
+    expected = FC_A[genes],
+    residual = residual_score[genes],
     partner = partner
   )
 
-  # Classify
-  threshold <- 0.3
-  epi_df$class <- "Additive"
-  epi_df$class[epi_df$residual > threshold] <- "Synergistic"
-  epi_df$class[epi_df$residual < -threshold] <- "Buffering"
+  epi_df$class <- "Near-additive residual"
+  epi_df$class[epi_df$residual > threshold] <- "Positive residual"
+  epi_df$class[epi_df$residual < -threshold] <- "Negative residual"
 
-  cat("  Synergistic:", sum(epi_df$class == "Synergistic"), "\n")
-  cat("  Buffering:", sum(epi_df$class == "Buffering"), "\n")
-  cat("  Additive:", sum(epi_df$class == "Additive"), "\n")
+  cat("  Positive residual:", sum(epi_df$class == "Positive residual"), "\n")
+  cat("  Negative residual:", sum(epi_df$class == "Negative residual"), "\n")
+  cat("  Near-additive residual:", sum(epi_df$class == "Near-additive residual"), "\n")
 
   epistasis_results[[partner]] <- epi_df
 }
 
 # Combine and save
 epi_all <- do.call(rbind, epistasis_results)
-write.csv(epi_all, file.path(out_dir, "ModuleA_epistasis_gene_level.csv"), row.names = FALSE)
+write.csv(epi_all, file.path(out_dir, "ModuleA_rnp_residual_gene_level.csv"), row.names = FALSE)
 
 # Summary table
 epi_summary <- epi_all %>%
@@ -182,7 +165,7 @@ epi_summary <- epi_all %>%
   mutate(pct = round(100 * n / sum(n), 1)) %>%
   ungroup()
 
-write.csv(epi_summary, file.path(out_dir, "ModuleA_epistasis_summary.csv"), row.names = FALSE)
+write.csv(epi_summary, file.path(out_dir, "ModuleA_rnp_residual_summary.csv"), row.names = FALSE)
 cat("\nModule A Summary:\n")
 print(epi_summary)
 
@@ -193,9 +176,9 @@ for (partner in partners) {
   p_scatter <- ggplot(epi_df, aes(x = expected, y = FC_AB, color = class)) +
     geom_point(size = 1.5, alpha = 0.4) +
     scale_color_manual(values = c(
-      "Synergistic" = "#E64B35",
-      "Buffering" = "#2166AC",
-      "Additive" = "grey70"
+      "Positive residual" = "#E64B35",
+      "Negative residual" = "#2166AC",
+      "Near-additive residual" = "grey70"
     )) +
     geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey40") +
     geom_abline(slope = 1, intercept = threshold, linetype = "dotted", color = "#E64B35", alpha = 0.5) +
@@ -204,8 +187,10 @@ for (partner in partners) {
     theme_classic(base_size = 14) +
     theme(aspect.ratio = 1) +
     labs(
-      title = paste0("Module A: Epistasis - ", partner),
-      x = "Expected (FC_A + FC_B)", y = "Observed (FC_AB)", color = ""
+      title = paste0("Module A: RNP-context Residual Score - ", partner),
+      x = "Expected (Baseline NBN Shift, FC_A)",
+      y = "Observed (Dual-perturbation Shift, FC_AB)",
+      color = ""
     )
 
   ggsave(file.path(fig_dir, paste0("ModuleA_scatter_", partner, ".pdf")),
@@ -321,7 +306,7 @@ for (cond in keep_conds) {
   tag <- parts[1]
   treat <- parts[2]
 
-  cells <- colnames(seu)[seu$assigned_tag == tag & seu$treatment == treat]
+  cells <- colnames(seu)[!is.na(seu$assigned_tag) & seu$assigned_tag == tag & seu$treatment == treat]
   if (length(cells) < 10) {
     cat("  Skipping", cond, "- only", length(cells), "cells\n")
     next
@@ -392,23 +377,22 @@ if (length(pb_list) >= 3) {
 }
 
 ##############################################################################
-# MODULE D: Gatekeeper Hierarchy
+# MODULE D: Candidate Rescue Summary
 ##############################################################################
-cat("\n=== MODULE D: Gatekeeper Hierarchy ===\n")
+cat("\n=== MODULE D: Candidate Rescue Summary ===\n")
 
-# Compute rescue percentages using Tier 3 DE results
-# Rescue = partner KD reverses genes that are changed by NBN activation
-# Use DE from Tier 3 (partner vs NT within RNP_NBN)
+# Compute candidate rescue percentages using Tier 3 DE results and the
+# Tier 2 stress-response deviation score.
 
 tier3_dir <- file.path(OUTPUT_DIR, "04_tier3")
-tier2_file <- file.path(OUTPUT_DIR, "03_tier2", "Tier2_interaction_table.csv")
+tier2_file <- file.path(OUTPUT_DIR, "03_tier2", "Tier2_deviation_table.csv")
 
 if (file.exists(tier2_file)) {
   tier2 <- read.csv(tier2_file)
 
-  # Genes with substantial interaction effect
-  affected_genes <- tier2$gene[abs(tier2$interaction_score) > 0.25]
-  cat("Genes with |interaction_score| > 0.25:", length(affected_genes), "\n")
+  # Genes with substantial deviation from the WT stress-response reference
+  affected_genes <- tier2$gene[abs(tier2$deviation_score) > 0.25]
+  cat("Genes with |deviation_score| > 0.25:", length(affected_genes), "\n")
 
   rescue_results <- list()
   for (partner in partners) {
@@ -417,29 +401,28 @@ if (file.exists(tier2_file)) {
 
     de <- read.csv(de_file)
 
-    # Merge with interaction data
+    # Merge with deviation-score data
     merged <- merge(
-      tier2[, c("gene", "interaction_score")],
+      tier2[, c("gene", "deviation_score")],
       de[, c("gene", "avg_log2FC", "p_val_adj")],
       by = "gene"
     )
 
-    # A gene is "rescued" if:
-    # 1. It had a strong interaction effect (|interaction_score| > 0.25)
+    # A gene is a candidate rescue if:
+    # 1. It had a strong deviation score (|deviation_score| > 0.25)
     # 2. Partner KD moves it in the opposite direction
-    # (i.e., interaction_score * avg_log2FC < 0)
-    merged$interaction_affected <- abs(merged$interaction_score) > 0.25
-    merged$opposite_direction <- merged$interaction_score * merged$avg_log2FC < 0
-    merged$rescued <- merged$interaction_affected & merged$opposite_direction
+    merged$deviation_affected <- abs(merged$deviation_score) > 0.25
+    merged$opposite_direction <- merged$deviation_score * merged$avg_log2FC < 0
+    merged$rescued <- merged$deviation_affected & merged$opposite_direction
 
-    n_affected <- sum(merged$interaction_affected)
+    n_affected <- sum(merged$deviation_affected)
     n_rescued <- sum(merged$rescued, na.rm = TRUE)
     pct_rescued <- round(100 * n_rescued / max(n_affected, 1), 1)
 
     rescue_results[[partner]] <- data.frame(
       partner = partner,
       n_total_genes = nrow(merged),
-      n_interaction_affected = n_affected,
+      n_deviation_affected = n_affected,
       n_rescued = n_rescued,
       pct_rescued = pct_rescued
     )
@@ -460,8 +443,8 @@ if (file.exists(tier2_file)) {
     scale_fill_manual(values = c("TP53BP1" = "#E64B35", "XRCC6" = "#2166AC", "POLQ" = "#00A087")) +
     theme_classic(base_size = 14) +
     labs(
-      title = "Module D: Gene-Level Rescue by Partner KD",
-      subtitle = paste0("Genes with |interaction_score| > 0.25: ", length(affected_genes)),
+      title = "Module D: Candidate Rescue by Partner KD",
+      subtitle = paste0("Genes with |deviation_score| > 0.25: ", length(affected_genes)),
       x = "Partner Knocked Down", y = "% Genes Rescued", fill = ""
     ) +
     ylim(0, max(rescue_df$pct_rescued) * 1.2)

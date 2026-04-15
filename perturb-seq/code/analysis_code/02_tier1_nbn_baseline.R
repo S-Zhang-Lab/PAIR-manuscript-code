@@ -45,8 +45,8 @@ seu_ctrl <- subset(seu, treatment == "CTRL")
 group1_tag <- "NBN_CRISPRa_NT_CasRx"
 group2_tag <- "NT_CRISPRa_NT_CasRx"
 
-n_group1 <- sum(seu_ctrl$assigned_tag == group1_tag)
-n_group2 <- sum(seu_ctrl$assigned_tag == group2_tag)
+n_group1 <- sum(seu_ctrl$assigned_tag == group1_tag, na.rm = TRUE)
+n_group2 <- sum(seu_ctrl$assigned_tag == group2_tag, na.rm = TRUE)
 cat("Group 1 (NBN_NT, CTRL):", n_group1, "cells\n")
 cat("Group 2 (NT_NT, CTRL):", n_group2, "cells\n")
 
@@ -130,7 +130,7 @@ p_volcano <- ggplot(de_results, aes(x = avg_log2FC, y = -log10(p_plot), color = 
   theme(aspect.ratio = 1) +
   labs(
     title = "Tier 1: NBN Activation Baseline (CTRL only)",
-    subtitle = paste0("NBN_NT vs NT_NT | 370 vs 41 cells"),
+    subtitle = paste0("NBN_NT vs NT_NT | ", n_group1, " vs ", n_group2, " cells"),
     x = "Log2 Fold Change", y = "-Log10(P-value)", color = ""
   )
 

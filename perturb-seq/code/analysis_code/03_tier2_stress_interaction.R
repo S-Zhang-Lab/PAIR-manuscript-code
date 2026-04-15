@@ -1,17 +1,17 @@
 ##############################################################################
-# Step 03: Tier 2 - Stress Capacity Interaction
+# Step 03: Tier 2 - Stress-response deviation score
 # PAIR-Perturb-Seq Analysis Pipeline
 #
 # Input:  data/seu_qc.qs
-# Output: res/03_tier2/ (DE tables, interaction table, scatter plot)
+# Output: res/03_tier2/ (DE tables, deviation table, scatter plot)
 #
-# Question: Does NBN activation alter the cell's transcriptional response
-# to exogenous DNA damage (RNP stress)?
+# Question: How much does the pooled single-cell stress response in NBN_NT
+# deviate from the pooled single-cell stress response in NT_NT?
 #
 # Approach:
 #   Vector A (WT stress response):  RNP_NT_NT   vs CTRL_NT_NT
 #   Vector B (NBN stress response): RNP_NBN_NT  vs CTRL_NBN_NT
-#   Interaction = log2FC_NBN - log2FC_WT
+#   Deviation score = log2FC_NBN - log2FC_WT
 ##############################################################################
 
 library(Seurat)
@@ -111,45 +111,39 @@ merged <- merge(
 merged$avg_log2FC_WT[is.na(merged$avg_log2FC_WT)] <- 0
 merged$avg_log2FC_NBN[is.na(merged$avg_log2FC_NBN)] <- 0
 
-# Compute interaction score
-merged$interaction_score <- merged$avg_log2FC_NBN - merged$avg_log2FC_WT
+# Compute descriptive deviation score
+merged$deviation_score <- merged$avg_log2FC_NBN - merged$avg_log2FC_WT
+merged$deviation_magnitude <- abs(merged$deviation_score)
 
-# Classify interaction
+# Classify descriptive deviation
 merged$class <- "Similar Response"
-merged$class[merged$interaction_score > 0.5] <- "Hyper-responsive in NBN"
-merged$class[merged$interaction_score < -0.5] <- "Fails to respond in NBN"
+merged$class[merged$deviation_score > 0.5] <- "Higher in NBN context"
+merged$class[merged$deviation_score < -0.5] <- "Lower in NBN context"
 
-merged <- merged %>% arrange(desc(abs(interaction_score)))
+merged <- merged %>% arrange(desc(deviation_magnitude))
 
 cat("\nTotal genes in merged table:", nrow(merged), "\n")
-cat("Hyper-responsive:", sum(merged$class == "Hyper-responsive in NBN"), "\n")
-cat("Fails to respond:", sum(merged$class == "Fails to respond in NBN"), "\n")
+cat("Higher in NBN context:", sum(merged$class == "Higher in NBN context"), "\n")
+cat("Lower in NBN context:", sum(merged$class == "Lower in NBN context"), "\n")
 cat("Similar:", sum(merged$class == "Similar Response"), "\n")
 
-# Compute p_plot column before any plotting
-merged$min_p <- pmin(merged$p_val_WT, merged$p_val_NBN, na.rm = TRUE)
-min_nonzero_p <- min(merged$min_p[merged$min_p > 0], na.rm = TRUE)
-merged$p_plot <- ifelse(is.na(merged$min_p) | merged$min_p == 0,
-  min_nonzero_p * 0.1, merged$min_p
-)
-
-write.csv(merged, file.path(out_dir, "Tier2_interaction_table.csv"), row.names = FALSE)
+write.csv(merged, file.path(out_dir, "Tier2_deviation_table.csv"), row.names = FALSE)
 
 # --- Scatter Plot: WT vs NBN stress response ---
-# Label top interaction genes
+# Label top deviation genes
 top_hyper <- merged %>%
-  filter(class == "Hyper-responsive in NBN") %>%
-  top_n(10, wt = abs(interaction_score))
+  filter(class == "Higher in NBN context") %>%
+  top_n(10, wt = deviation_magnitude)
 top_fail <- merged %>%
-  filter(class == "Fails to respond in NBN") %>%
-  top_n(10, wt = abs(interaction_score))
+  filter(class == "Lower in NBN context") %>%
+  top_n(10, wt = deviation_magnitude)
 label_genes <- rbind(top_hyper, top_fail)
 
 p_scatter <- ggplot(merged, aes(x = avg_log2FC_WT, y = avg_log2FC_NBN, color = class)) +
   geom_point(size = 1.5, alpha = 0.5) +
   scale_color_manual(values = c(
-    "Hyper-responsive in NBN" = "#E64B35",
-    "Fails to respond in NBN" = "#4DBBD5",
+    "Higher in NBN context" = "#E64B35",
+    "Lower in NBN context" = "#4DBBD5",
     "Similar Response" = "grey70"
   )) +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey40") +
@@ -162,7 +156,7 @@ p_scatter <- ggplot(merged, aes(x = avg_log2FC_WT, y = avg_log2FC_NBN, color = c
   theme_classic(base_size = 14) +
   coord_equal() +
   labs(
-    title = "Tier 2: Stress Response Interaction",
+    title = "Tier 2: Stress-response Deviation Score",
     subtitle = paste0(
       "WT: ", n_nt_rnp, " vs ", n_nt_ctrl,
       " | NBN: ", n_nbn_rnp, " vs ", n_nbn_ctrl, " cells"
@@ -172,14 +166,14 @@ p_scatter <- ggplot(merged, aes(x = avg_log2FC_WT, y = avg_log2FC_NBN, color = c
     color = ""
   )
 
-ggsave(file.path(fig_dir, "Tier2_interaction_scatter.pdf"), p_scatter, width = 7, height = 7)
+ggsave(file.path(fig_dir, "Tier2_deviation_scatter.pdf"), p_scatter, width = 7, height = 7)
 
-# --- Volcano-style plot of interaction scores ---
-p_volcano <- ggplot(merged, aes(x = interaction_score, y = -log10(p_plot), color = class)) +
+# --- Magnitude plot of deviation scores ---
+p_magnitude <- ggplot(merged, aes(x = deviation_score, y = deviation_magnitude, color = class)) +
   geom_point(size = 1.5, alpha = 0.5) +
   scale_color_manual(values = c(
-    "Hyper-responsive in NBN" = "#E64B35",
-    "Fails to respond in NBN" = "#4DBBD5",
+    "Higher in NBN context" = "#E64B35",
+    "Lower in NBN context" = "#4DBBD5",
     "Similar Response" = "grey70"
   )) +
   geom_vline(xintercept = c(-0.5, 0.5), linetype = "dashed", color = "grey40") +
@@ -190,12 +184,12 @@ p_volcano <- ggplot(merged, aes(x = interaction_score, y = -log10(p_plot), color
   theme_classic(base_size = 14) +
   theme(aspect.ratio = 1) +
   labs(
-    title = "Tier 2: Interaction Score Distribution",
-    x = "Interaction Score (log2FC_NBN - log2FC_WT)",
-    y = "-Log10(min P-value)", color = ""
+    title = "Tier 2: Deviation-score Magnitude",
+    x = "Deviation Score (log2FC_NBN - log2FC_WT)",
+    y = "|Deviation Score|", color = ""
   )
 
-ggsave(file.path(fig_dir, "Tier2_interaction_volcano.pdf"), p_volcano, width = 7, height = 7)
+ggsave(file.path(fig_dir, "Tier2_deviation_magnitude.pdf"), p_magnitude, width = 7, height = 7)
 
 # --- Summary ---
 cat("\n=== Tier 2 Summary ===\n")
@@ -208,8 +202,8 @@ cat(
   sum(de_nbn$p_val_adj < 0.05), "significant (adj.P < 0.05)\n"
 )
 cat("Merged (full outer join):", nrow(merged), "genes\n")
-cat("Hyper-responsive in NBN (score > 0.5):", sum(merged$class == "Hyper-responsive in NBN"), "\n")
-cat("Fails to respond in NBN (score < -0.5):", sum(merged$class == "Fails to respond in NBN"), "\n")
+cat("Higher in NBN context (score > 0.5):", sum(merged$class == "Higher in NBN context"), "\n")
+cat("Lower in NBN context (score < -0.5):", sum(merged$class == "Lower in NBN context"), "\n")
 
 cat("\nStep 03 complete.\n")
 cat("Tables written to:", out_dir, "\n")
