@@ -44,9 +44,14 @@ seu@meta.data <- meta
 
 # ==== load PAIR results ====
 # Specify file paths
-barcodes_file <- "./data/PAIR_output/PAIR_matched_sparse_UMI_matrix_middle10_rows.txt"
-features_file <- "./data/PAIR_output/PAIR_matched_sparse_UMI_matrix_middle10_columns.txt"
-matrix_file   <- "./data/PAIR_output/PAIR_matched_sparse_UMI_matrix_middle10.mtx"
+# NOTE: Use the full PAIR matrix (6,227 barcodes), NOT the middle10 subset
+# (6,211 barcodes).  The original script used middle10_rows/columns/matrix
+# but seu_qc.qs was built from the full matrix; using middle10 here would
+# drop 324 cells and cause a barcode mismatch.  See docs/REVIEW_SUMMARY.md
+# §1 for the full explanation.
+barcodes_file <- "./data/PAIR_output/PAIR_matched_sparse_UMI_matrix_rows.txt"
+features_file <- "./data/PAIR_output/PAIR_matched_sparse_UMI_matrix_columns.txt"
+matrix_file   <- "./data/PAIR_output/PAIR_matched_sparse_UMI_matrix.mtx"
 
 # Read the matrix (sparse format)
 mat <- readMM(matrix_file)

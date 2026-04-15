@@ -191,6 +191,193 @@ write.csv(quant_df, file.path(out_dir, "target_gene_quantification.csv"), row.na
 cat("\n=== Target Gene Expression Summary ===\n")
 print(quant_df %>% filter(gene == "NBN") %>% arrange(condition, treatment))
 
+# --- 6. PAIR Assignment Diagnostics -------------------------------------------
+# Critique §D: document the argmax rule, zero-UMI fate, tie handling, margin
+# distribution, and double-positive fraction so assignment robustness is
+# transparent.  Reads the raw PAIR sparse matrix directly.
+cat("\n=== PAIR Assignment Diagnostics ===\n")
+
+pair_dir  <- file.path(DATA_DIR, "PAIR_output")
+# NOTE: Code discovery — the current organize_data.R points at the "middle10"
+# PAIR subset (6211 barcodes), but the existing seu_qc.qs was built when the
+# FULL matrix (6227 barcodes) was used: all 2271 QC-passing cells match the
+# full matrix, while 324 do not match middle10. Diagnostics therefore use the
+# full matrix for complete, accurate coverage. If organize_data.R is re-run
+# with the current middle10 code, ~324 cells would be lost from seu_qc.
+# This code/data inconsistency is documented in DATA_ANALYSIS_GUIDE.md Part II.
+rows_file <- file.path(pair_dir, "PAIR_matched_sparse_UMI_matrix_rows.txt")
+cols_file <- file.path(pair_dir, "PAIR_matched_sparse_UMI_matrix_columns.txt")
+mtx_file  <- file.path(pair_dir, "PAIR_matched_sparse_UMI_matrix.mtx")
+
+if (!file.exists(mtx_file)) {
+  cat("PAIR matrix not found at", mtx_file, "— skipping diagnostics.\n")
+} else {
+  library(Matrix)
+
+  pair_barcodes <- read.delim(rows_file, header = FALSE, stringsAsFactors = FALSE)$V1
+  pair_tags     <- read.delim(cols_file, header = FALSE, stringsAsFactors = FALSE)$V1
+  pair_mat      <- readMM(mtx_file)          # rows = cells, columns = tags
+  rownames(pair_mat) <- pair_barcodes
+  colnames(pair_mat) <- pair_tags
+  pair_mat_dense <- as.matrix(pair_mat)      # 6211 x 11
+
+  cat("Raw PAIR matrix dimensions:", nrow(pair_mat_dense), "cells x",
+      ncol(pair_mat_dense), "tags\n")
+  cat("Tags:", paste(pair_tags, collapse = ", "), "\n")
+
+  # Per-cell summary statistics
+  total_umi   <- rowSums(pair_mat_dense)
+  max_umi     <- apply(pair_mat_dense, 1, max)
+  runner_up   <- apply(pair_mat_dense, 1, function(x) sort(x, decreasing = TRUE)[2])
+  margin      <- max_umi - runner_up
+  n_nonzero   <- rowSums(pair_mat_dense > 0)
+
+  diag_df <- data.frame(
+    cell_barcode   = paste0(pair_barcodes, "-1"),   # match seu_qc format
+    total_pair_umi = total_umi,
+    max_tag_umi    = max_umi,
+    runner_up_umi  = runner_up,
+    margin         = margin,
+    n_nonzero_tags = n_nonzero,
+    zero_umi_cell  = total_umi == 0,
+    stringsAsFactors = FALSE
+  )
+
+  # Annotate with QC status + assigned tag from seu_qc
+  qc_meta <- seu@meta.data[, c("sample", "treatment", "assigned_tag"), drop = FALSE]
+  qc_meta$cell_barcode <- rownames(qc_meta)
+  qc_meta$in_seu_qc    <- TRUE
+  diag_df <- merge(diag_df, qc_meta, by = "cell_barcode", all.x = TRUE)
+  diag_df$in_seu_qc[is.na(diag_df$in_seu_qc)] <- FALSE
+
+  write.csv(diag_df, file.path(out_dir, "pair_assignment_diagnostics.csv"),
+            row.names = FALSE)
+
+  # ── Print summary ──────────────────────────────────────────────────────────
+  n_total   <- nrow(diag_df)
+  n_zero    <- sum(diag_df$zero_umi_cell)
+  n_qc      <- sum(diag_df$in_seu_qc)
+  n_single  <- sum(!diag_df$zero_umi_cell & diag_df$n_nonzero_tags == 1)
+  n_multi   <- sum(!diag_df$zero_umi_cell & diag_df$n_nonzero_tags > 1)
+
+  diag_qc <- diag_df[diag_df$in_seu_qc, ]
+  med_mar  <- median(diag_qc$margin, na.rm = TRUE)
+  n_low_mg <- sum(diag_qc$margin < 3, na.rm = TRUE)
+
+  cat(sprintf("Total cells in raw PAIR matrix : %d\n",   n_total))
+  cat(sprintf("  Zero-UMI cells (-> NA -> dropped): %d (%.1f%%)\n",
+              n_zero, 100 * n_zero / n_total))
+  cat(sprintf("  Single-tag cells (clean assign): %d (%.1f%%)\n",
+              n_single, 100 * n_single / n_total))
+  cat(sprintf("  Multi-tag cells (>=2 non-zero): %d (%.1f%%)\n",
+              n_multi, 100 * n_multi / n_total))
+  cat(sprintf("Cells passing QC (in seu_qc)    : %d\n",   n_qc))
+  cat(sprintf("  Median top/runner-up margin   : %.0f UMIs\n", med_mar))
+  cat(sprintf("  Cells with margin < 3 UMIs    : %d (%.1f%% of QC cells)\n",
+              n_low_mg, 100 * n_low_mg / n_qc))
+
+  # ── Figure 1: Total PAIR UMI per cell (all cells, capped at 200) ──────────
+  library(ggplot2)
+  p_hist_total <- ggplot(
+    diag_df %>% filter(!zero_umi_cell),
+    aes(x = pmin(total_pair_umi, 200))
+  ) +
+    geom_histogram(bins = 60, fill = "#4DBBD5", color = "white", linewidth = 0.2) +
+    geom_vline(xintercept = median(diag_df$total_pair_umi[!diag_df$zero_umi_cell]),
+               linetype = "dashed", color = "#E64B35", linewidth = 0.8) +
+    scale_x_continuous(
+      breaks = c(0, 25, 50, 100, 150, 200),
+      labels = c("0", "25", "50", "100", "150", "≥200")
+    ) +
+    labs(
+      title = "Total PAIR UMI per cell (non-zero cells)",
+      subtitle = sprintf("n = %d cells; %d zero-UMI cells excluded",
+                         n_total - n_zero, n_zero),
+      x = "Total PAIR UMI (capped at 200)",
+      y = "Number of cells",
+      caption = "Dashed red line = median"
+    ) +
+    theme_classic(base_size = 11) +
+    theme(plot.title = element_text(face = "bold"))
+  ggsave(file.path(fig_dir, "pair_diag_total_umi_hist.pdf"),
+         p_hist_total, width = 7, height = 4.5)
+
+  # ── Figure 2: Top-vs-runner-up margin distribution (non-zero cells) ───────
+  p_hist_margin <- ggplot(
+    diag_df %>% filter(!zero_umi_cell),
+    aes(x = pmin(margin, 100))
+  ) +
+    geom_histogram(bins = 50, fill = "#91D1C2", color = "white", linewidth = 0.2) +
+    geom_vline(xintercept = 3, linetype = "dashed", color = "#E64B35",
+               linewidth = 0.8) +
+    scale_x_continuous(
+      breaks = c(0, 3, 10, 25, 50, 100),
+      labels = c("0", "3", "10", "25", "50", "≥100")
+    ) +
+    labs(
+      title = "PAIR assignment margin (top tag − runner-up UMI)",
+      subtitle = sprintf("n = %d non-zero cells; margin = 0 means single non-zero tag",
+                         n_total - n_zero),
+      x = "Margin (capped at 100)",
+      y = "Number of cells",
+      caption = "Dashed red line = margin 3 (ambiguity threshold)"
+    ) +
+    theme_classic(base_size = 11) +
+    theme(plot.title = element_text(face = "bold"))
+  ggsave(file.path(fig_dir, "pair_diag_margin_hist.pdf"),
+         p_hist_margin, width = 7, height = 4.5)
+
+  # ── Figure 3: Number of non-zero tags per cell ────────────────────────────
+  nz_tab <- as.data.frame(table(n_nonzero_tags = diag_df$n_nonzero_tags))
+  nz_tab$n_nonzero_tags <- as.integer(as.character(nz_tab$n_nonzero_tags))
+  nz_tab$pct <- 100 * nz_tab$Freq / n_total
+  nz_tab$label_col <- ifelse(nz_tab$n_nonzero_tags == 0, "#cccccc",
+                      ifelse(nz_tab$n_nonzero_tags == 1, "#4DBBD5", "#E64B35"))
+
+  p_bar_nz <- ggplot(nz_tab, aes(x = factor(n_nonzero_tags), y = pct,
+                                  fill = label_col)) +
+    geom_col(color = "white") +
+    geom_text(aes(label = sprintf("%.1f%%", pct)), vjust = -0.4, size = 3.2) +
+    scale_fill_identity() +
+    labs(
+      title = "Number of non-zero PAIR tags per cell",
+      subtitle = "Grey=zero-UMI (dropped), blue=single tag, red=multi-tag",
+      x = "# Non-zero PAIR tags", y = "% of all cells"
+    ) +
+    theme_classic(base_size = 11) +
+    theme(plot.title = element_text(face = "bold"))
+  ggsave(file.path(fig_dir, "pair_diag_nonzero_tags_bar.pdf"),
+         p_bar_nz, width = 6, height = 4)
+
+  # ── Figure 4: QC-passing cells — margin stratified by partner arm ─────────
+  if (n_qc > 0) {
+    p_vio_margin <- ggplot(
+      diag_qc %>% filter(!is.na(assigned_tag)),
+      aes(x = reorder(assigned_tag, margin, median), y = pmin(margin, 100),
+          fill = assigned_tag)
+    ) +
+      geom_violin(alpha = 0.7, trim = TRUE) +
+      geom_boxplot(width = 0.08, outlier.shape = NA, color = "grey30") +
+      coord_flip() +
+      labs(
+        title = "PAIR assignment margin per tag arm (QC-passing cells)",
+        subtitle = "margin = max UMI − runner-up UMI; values capped at 100",
+        x = NULL, y = "Margin (capped at 100)"
+      ) +
+      theme_classic(base_size = 11) +
+      theme(legend.position = "none",
+            plot.title = element_text(face = "bold"))
+    ggsave(file.path(fig_dir, "pair_diag_margin_by_arm.pdf"),
+           p_vio_margin, width = 8, height = 6)
+    cat("Saved: pair_diag_margin_by_arm.pdf\n")
+  }
+
+  cat("Saved: pair_assignment_diagnostics.csv\n")
+  cat("Saved: pair_diag_total_umi_hist.pdf\n")
+  cat("Saved: pair_diag_margin_hist.pdf\n")
+  cat("Saved: pair_diag_nonzero_tags_bar.pdf\n")
+}
+
 cat("\nStep 01 complete.\n")
 cat("Tables written to:", out_dir, "\n")
 cat("Figures written to:", fig_dir, "\n")

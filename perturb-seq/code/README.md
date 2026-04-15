@@ -80,20 +80,23 @@ tables to `OUTPUT_DIR/<step>/` and figures to `FIGURES_DIR/<step>/` (both under
 |--------|-------------|
 | `00_check_and_install_packages.R` | Checks and installs all required R packages |
 | `00_qc_filtering.R` | MAD-based QC filtering; produces `data/objs/seu_qc.qs` |
-| `01_perturbation_validation.R` | Validates CRISPRa (NBN activation) and CasRx (partner knockdown) efficiency |
+| `01_perturbation_validation.R` | Validates CRISPRa (NBN activation) and CasRx (partner knockdown) efficiency; §6 adds PAIR assignment diagnostics (UMI margin histograms, multi-tag fraction) |
 | `02_tier1_nbn_baseline.R` | Differential expression: NBN-CRISPRa vs. NT control (baseline NBN effect) |
-| `03_tier2_stress_interaction.R` | Interaction analysis: genes hyper- or hypo-responsive to stress in NBN-perturbed cells |
-| `04_tier3_partner_modulation.R` | DE analysis for each dual perturbation (NBN + TP53BP1/XRCC6/POLQ) vs. NBN alone |
+| `03_tier2_stress_interaction.R` | Stress-response deviation scoring: genes hyper- or hypo-responsive to stress in NBN-perturbed cells (exploratory L2) |
+| `04_tier3_partner_modulation.R` | Pooled cell-level DE for each dual perturbation (NBN + TP53BP1/XRCC6/POLQ) vs. NBN alone; results used as internal ranking |
 | `05_fgsea_analysis.R` | fGSEA pathway enrichment on MSigDB Hallmark gene sets for Tier 2 and Tier 3 results |
 | `06_tier4_repair_modules.R` | Computes HR, NHEJ, and MMEJ module scores; characterizes repair pathway activity |
 | `07_tier5_aucell.R` | AUCell-based per-cell pathway activity scoring |
-| `08_phase2_epistasis.R` | Epistasis modeling: additive model residuals, pseudobulk PCA manifold, pathway tau scores |
+| `08_phase2_epistasis.R` | Descriptive combinatorial perturbation scoring: additive model residuals (Module A candidate classes), pseudobulk PCA manifold, pathway tau scores (exploratory L2) |
 | `09_cross_partner_overlap.R` | Cross-partner gene set overlap: UpSet plots, Jaccard similarity, per-class enrichment |
 | `10_repair_profile_clustering.R` | Repair profile clustering using module scores (v1) |
 | `10_repair_profile_clustering_v2.R` | Repair profile clustering using AUCell scores; per-cell ternary plots and heterogeneity analysis (v2, preferred) |
-| `11_GxGxE_ctrl_epistasis.R` | GxGxE framework: epistasis in CTRL vs. RNP conditions; identifies rewired genes |
-| `12_cell_heterogeneity.R` | Single-cell heterogeneity and bimodality analysis (Hartigan's dip test, synergy score UMAP) |
-| `13_linear_interaction_model.R` | Linear interaction model `FC_AB ~ β1·FC_A + β2·FC_B`; gene-level regulatory dominance hierarchy (A1 + A6) |
+| `11_GxGxE_ctrl_epistasis.R` | Condition-dependent residual pattern analysis (GxGxE): candidate condition-dependent residuals in CTRL vs. RNP; exploratory L2 |
+| `12_cell_heterogeneity.R` | Cell heterogeneity and distribution diagnostics: Hartigan's dip test (unimodality check, low power), synergy-score UMAP |
+| `13_linear_interaction_model.R` | Fold-change geometry / contribution analysis: `FC_AB ~ beta1*FC_A + beta2*FC_B`; reports NBN-weighted contribution fraction (A1 + A6) |
+| `14_replicate_diagnostics.R` | **Robustness (critique §C.1/C.2):** replicate composition, per-replicate module scores, and RNP2-vs-RNP3 pathway direction sign-consistency check |
+| `15_downsampling_stability.R` | **Robustness (critique §C.3):** 50-bootstrap downsampling of NBN+NT reference arm; 95% CI intervals for Hallmark pathway NES per partner |
+| `16_low_count_sensitivity.R` | **Robustness (critique §C.4):** re-runs Tier 3 fGSEA at progressive cell-count cutoffs; confirms direction stability when low-count arms (POLQ, 132 cells) are excluded |
 | `regenerate_figures.R` | Regenerates key figures from pre-computed CSVs without re-running Seurat |
 | `regenerate_hugo_figures.R` | Updates figures to use standardized HUGO gene names |
 
