@@ -19,6 +19,7 @@ library(dplyr)
 library(tidyr)
 library(pheatmap)
 library(AUCell)
+library(ggrepel)
 
 set.seed(42)
 
@@ -169,9 +170,21 @@ write.csv(epi_summary, file.path(out_dir, "ModuleA_rnp_residual_summary.csv"), r
 cat("\nModule A Summary:\n")
 print(epi_summary)
 
-# Scatter: Expected vs Observed
+# Scatter: Expected vs Observed, with top residual genes labeled
+n_label <- 15  # top N positive and top N negative residual genes to label
+
 for (partner in partners) {
   epi_df <- epistasis_results[[partner]]
+
+  pos_lab <- epi_df %>%
+    filter(class == "Positive residual") %>%
+    arrange(desc(residual)) %>%
+    head(n_label)
+  neg_lab <- epi_df %>%
+    filter(class == "Negative residual") %>%
+    arrange(residual) %>%
+    head(n_label)
+  lab_df <- bind_rows(pos_lab, neg_lab)
 
   p_scatter <- ggplot(epi_df, aes(x = expected, y = FC_AB, color = class)) +
     geom_point(size = 1.5, alpha = 0.4) +
@@ -183,11 +196,27 @@ for (partner in partners) {
     geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey40") +
     geom_abline(slope = 1, intercept = threshold, linetype = "dotted", color = "#E64B35", alpha = 0.5) +
     geom_abline(slope = 1, intercept = -threshold, linetype = "dotted", color = "#2166AC", alpha = 0.5) +
+    geom_point(data = lab_df, aes(x = expected, y = FC_AB, color = class),
+               size = 2, alpha = 0.9) +
+    geom_text_repel(
+      data = lab_df,
+      aes(x = expected, y = FC_AB, label = gene, color = class),
+      size = 3.2,
+      fontface = "italic",
+      min.segment.length = 0,
+      box.padding = 0.35,
+      point.padding = 0.2,
+      max.overlaps = Inf,
+      segment.size = 0.3,
+      segment.alpha = 0.6,
+      show.legend = FALSE
+    ) +
     coord_equal() +
     theme_classic(base_size = 14) +
     theme(aspect.ratio = 1) +
     labs(
       title = paste0("Module A: RNP-context Residual Score - ", partner),
+      subtitle = paste0("Top ", n_label, " positive and ", n_label, " negative residual genes labeled"),
       x = "Expected (Baseline NBN Shift, FC_A)",
       y = "Observed (Dual-perturbation Shift, FC_AB)",
       color = ""
@@ -195,7 +224,7 @@ for (partner in partners) {
 
   ggsave(file.path(fig_dir, paste0("ModuleA_scatter_", partner, ".pdf")),
     p_scatter,
-    width = 7, height = 7
+    width = 7.5, height = 7.5
   )
 }
 
