@@ -4,7 +4,7 @@ module load python/3.10.x-anaconda
 # activate the conda env. The latest mageck has been installed under ISS env
 conda activate ISS 
 
-cd /project/pathology/SiZhang_lab/shared/Active_Projects/UTSW25_CC_DDR/RAW/01.RawData/DDR1
+cd ${PROJECT_ROOT:-.}/RAW/01.RawData/DDR1
 
 
 # grep target U6 handle sequences on beginning of R1. The pattern is GTGGAAAGGACGAAACACCG + Position 1 (20nt) + GTTTTAGAGCTAGGCCAACATGAGGATCACCCATGTCTGCAG 
@@ -48,7 +48,7 @@ python UTSW25_DDR_BC_extraction.py -r1 DDR1_CKDL240042575-1A_22TFMKLT3_L7_1.fq.g
 python calculate_frequencies.py -i DDR1_extraction_output.txt -o DDR1_unique_combinations_sorted.txt -v
 
 # DDR2
-cd /project/pathology/SiZhang_lab/shared/Active_Projects/UTSW25_CC_DDR/RAW/01.RawData/DDR2
+cd ${PROJECT_ROOT:-.}/RAW/01.RawData/DDR2
 
 (ISS) [s208205@Nucleus005 DDR2]$ zcat DDR2_CKDL240042575-1A_22TFMKLT3_L7_1.fq.gz | awk '(NR%4==2) && /GTGGAAAGGACGAAACACCG/' | head
 ANGGTGGAAAGGACGAAACACCGCTCATCCAAGGCAGCCTGCGGTTTTAGAGCTAGGCCAACATGAGGATCACCCATGTCTGCAGGGCCTAGCAAGTTAAAATAAGGCTAGTCCGTTATCAACTTGGCCAACATGAGGATCACCCATGTC
@@ -98,7 +98,7 @@ python calculate_frequencies.py -i DDR5_extraction_output.txt -o DDR5_unique_com
 
 # map the frequencies to the whitelist
 python All_positions_mapping.py --input_file DDR1_unique_combinations_sorted.txt \
-                                 --whitelist_file /project/pathology/SiZhang_lab/shared/Active_Projects/UTSW25_CC_DDR/Sub_info/Final_oligos_withID.csv \
+                                 --whitelist_file ${PROJECT_ROOT:-.}/Sub_info/Final_oligos_withID.csv \
                                  --output_file DDR1_unique_combinations_sorted_mapped.txt
 
 
@@ -127,7 +127,7 @@ python 01_Mapping.py --input_file DDR1_unique_combinations_sorted.txt \
 
 # repeat for DDR2, DDR3, DDR4, DDR5
 python All_positions_mapping.py --input_file DDR2_unique_combinations_sorted.txt \
-                                 --whitelist_file /project/pathology/SiZhang_lab/shared/Active_Projects/UTSW25_CC_DDR/Sub_info/Final_oligos_withID.csv \
+                                 --whitelist_file ${PROJECT_ROOT:-.}/Sub_info/Final_oligos_withID.csv \
                                  --output_file DDR2_unique_combinations_sorted_mapped.txt
 
 python 01_Mapping.py --input_file DDR2_unique_combinations_sorted.txt \
@@ -143,7 +143,7 @@ python 01_Mapping.py --input_file DDR2_unique_combinations_sorted.txt \
                      --count_threshold 50
 
 python All_positions_mapping.py --input_file DDR3_unique_combinations_sorted.txt \
-                                 --whitelist_file /project/pathology/SiZhang_lab/shared/Active_Projects/UTSW25_CC_DDR/Sub_info/Final_oligos_withID.csv \
+                                 --whitelist_file ${PROJECT_ROOT:-.}/Sub_info/Final_oligos_withID.csv \
                                  --output_file DDR3_unique_combinations_sorted_mapped.txt
 
 python 01_Mapping.py --input_file DDR3_unique_combinations_sorted.txt \
@@ -159,7 +159,7 @@ python 01_Mapping.py --input_file DDR3_unique_combinations_sorted.txt \
                      --count_threshold 50                    
 
 python All_positions_mapping.py --input_file DDR4_unique_combinations_sorted.txt \
-                                 --whitelist_file /project/pathology/SiZhang_lab/shared/Active_Projects/UTSW25_CC_DDR/Sub_info/Final_oligos_withID.csv \
+                                 --whitelist_file ${PROJECT_ROOT:-.}/Sub_info/Final_oligos_withID.csv \
                                  --output_file DDR4_unique_combinations_sorted_mapped.txt
 
 python 01_Mapping.py --input_file DDR4_unique_combinations_sorted.txt \
@@ -175,7 +175,7 @@ python 01_Mapping.py --input_file DDR4_unique_combinations_sorted.txt \
                      --count_threshold 50                             
 
 python All_positions_mapping.py --input_file DDR5_unique_combinations_sorted.txt \
-                                 --whitelist_file /project/pathology/SiZhang_lab/shared/Active_Projects/UTSW25_CC_DDR/Sub_info/Final_oligos_withID.csv \
+                                 --whitelist_file ${PROJECT_ROOT:-.}/Sub_info/Final_oligos_withID.csv \
                                  --output_file DDR5_unique_combinations_sorted_mapped.txt
 
 python 01_Mapping.py --input_file DDR5_unique_combinations_sorted.txt \
@@ -191,12 +191,12 @@ python 01_Mapping.py --input_file DDR5_unique_combinations_sorted.txt \
                      --count_threshold 50     
 
 # assemble final matrix
-python 02_assemble_count_matrix.py --whitelist_file /project/pathology/SiZhang_lab/shared/Active_Projects/UTSW25_CC_DDR/Sub_info/Final_oligos_withID.csv \
+python 02_assemble_count_matrix.py --whitelist_file ${PROJECT_ROOT:-.}/Sub_info/Final_oligos_withID.csv \
                                    --output_file kmer_HD1_count_matrix.csv \
                                    --input_files DDR1_Final_kmer_mapped_count_HD1_T100.csv DDR2_Final_kmer_mapped_count_HD1_T100.csv DDR3_Final_kmer_mapped_count_HD1_T100.csv DDR4_Final_kmer_mapped_count_HD1_T100.csv DDR5_Final_kmer_mapped_count_HD1_T100.csv
 
 
-python 02_assemble_count_matrix.py --whitelist_file /project/pathology/SiZhang_lab/shared/Active_Projects/UTSW25_CC_DDR/Sub_info/Final_oligos_withID.csv \
+python 02_assemble_count_matrix.py --whitelist_file ${PROJECT_ROOT:-.}/Sub_info/Final_oligos_withID.csv \
                                    --output_file kmer20_HD1_count_matrix.csv \
                                    --input_files DDR1_Final_kmer_mapped_count_HD1_T50_kmer20.csv DDR2_Final_kmer_mapped_count_HD1_T50_kmer20.csv DDR3_Final_kmer_mapped_count_HD1_T50_kmer20.csv DDR4_Final_kmer_mapped_count_HD1_T50_kmer20.csv DDR5_Final_kmer_mapped_count_HD1_T50_kmer20.csv
 

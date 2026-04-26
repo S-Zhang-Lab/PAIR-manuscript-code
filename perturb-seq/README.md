@@ -34,7 +34,7 @@ NovaSeq X Plus (PE150) on one lane
 
 ## RAW data location
 
-Box: <https://utsw.box.com/s/msqf44ib1ozl3jw2w5skw3be7d6kinqn>
+See [`../data/README.md`](../data/README.md) for raw FASTQ accessions and processed-data download links.
 
 ## PAIR RNA library structure
 

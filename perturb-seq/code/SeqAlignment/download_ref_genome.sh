@@ -1,5 +1,4 @@
 #!/bin/bash
-#$ -M dgan@nd.edu
 #$ -m abe
 #$ -pe smp 2 # reserving 2 cores
 #$ -q long
@@ -7,7 +6,7 @@
 
 
 # Define reference path
-REF_DIR="/afs/crc.nd.edu/group/StatDataMine/dm008/Dailin_Gan/Siyuan/PAIR-perturb-seq_2025-10/ref_genome"
+REF_DIR="${PROJECT_ROOT:-.}/ref_genome"
 cd "$REF_DIR" || { echo "Directory not found: $REF_DIR"; exit 1; }
 
 # Download the latest human reference genome (≈11 GB)

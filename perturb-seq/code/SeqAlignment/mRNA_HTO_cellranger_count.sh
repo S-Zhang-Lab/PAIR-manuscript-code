@@ -1,5 +1,4 @@
 #!/bin/bash
-#$ -M dgan@nd.edu
 #$ -m abe
 #$ -pe smp 36 # reserving 36 cores
 #$ -q long
@@ -7,9 +6,9 @@
 
 module load bio/cellranger/8.0.1
 
-OUTDIR="/afs/crc.nd.edu/group/StatDataMine/dm008/Dailin_Gan/Siyuan/PAIR-perturb-seq_2025-10"
+OUTDIR="${PROJECT_ROOT:-.}"
 SAMPLE_ID="HTO_GEX_TT_A12"
-MULTI_CONFIG="/afs/crc.nd.edu/group/StatDataMine/dm008/Dailin_Gan/Siyuan/PAIR-perturb-seq_2025-10/code/SeqAlignment/multi_config.csv"
+MULTI_CONFIG="${PROJECT_ROOT:-.}/code/SeqAlignment/multi_config.csv"
 
 # Go to the desired output directory
 cd "$OUTDIR" || exit 1

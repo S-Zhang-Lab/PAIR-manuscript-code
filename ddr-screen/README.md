@@ -54,11 +54,8 @@ The **sorted** cells and **unsorted** cells and puro selected cells are harveste
 
 ***Platform*** NovaSeq X Plus (PE150) 375G of theoretical data per lane
 
-***RAW data and info sheet:*** RAW data is located on S.Zhang.Box shared drive:
-
-1.  Info sheets: <https://utsw.box.com/s/redff0ap1bofn6ifszhnrynp5pmxme56>
-
-2.  RAW data: <https://utsw.box.com/s/fd1l03t5hai81x4haeph3hlfwmgzgzhf>
+***RAW data and info sheet:*** see [`../data/README.md`](../data/README.md)
+for raw FASTQ accessions and processed-data download links.
 
 ### 02. Fastq raw data processing and count matrix generation
 
@@ -79,7 +76,7 @@ python 01_Mapping.py --input_file DDR1_unique_combinations_sorted.txt \
                      --count_threshold 50
 
 # step 4 assemble final count matrix
-python 02_assemble_count_matrix.py --whitelist_file /project/pathology/SiZhang_lab/shared/Active_Projects/UTSW25_CC_DDR/Sub_info/Final_oligos_withID.csv \
+python 02_assemble_count_matrix.py --whitelist_file ${PROJECT_ROOT:-.}/Sub_info/Final_oligos_withID.csv \
                                    --output_file kmer20_HD1_count_matrix.csv \
                                    --input_files DDR1_Final_kmer_mapped_count_HD1_T50_kmer20.csv DDR2_Final_kmer_mapped_count_HD1_T50_kmer20.csv DDR3_Final_kmer_mapped_count_HD1_T50_kmer20.csv DDR4_Final_kmer_mapped_count_HD1_T50_kmer20.csv DDR5_Final_kmer_mapped_count_HD1_T50_kmer20.csv
 
