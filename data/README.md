@@ -41,7 +41,7 @@ $DATA_ROOT/
 | Raw FASTQ (DDR1–DDR5) | `.fastq.gz` | _SRA / GEO accession TBD_ | _TBD_ |
 | k-mer corrected count matrix | `.csv` | [`ddr-screen/Misc/kmer20_HD1_count_matrix.csv`](../ddr-screen/Misc/kmer20_HD1_count_matrix.csv) | 988 KB (in repo) |
 | Oligo library design | `.csv` | [`ddr-screen/Misc/Final_oligos*.csv`](../ddr-screen/Misc/) | 12 MB (in repo) |
-| DESeq2 / edgeR / MAGeCK result tables | `.csv` | [`ddr-screen/Results/`](../ddr-screen/Results/) | 9.9 MB (in repo) |
+| DESeq2 result tables + NBN focus + network outputs | `.csv` | [`ddr-screen/Results/`](../ddr-screen/Results/) | < 5 MB (in repo) |
 | Figures | `.pdf` | [`ddr-screen/Figures/`](../ddr-screen/Figures/) | 432 KB (in repo) |
 
 The ddr-screen processed outputs are checked into the repo because they are
@@ -54,10 +54,9 @@ To regenerate every figure in the manuscript **without** re-running upstream
 processing, you need:
 
 - For ddr-screen: nothing extra — everything required is already in the repo.
-- For perturb-seq: only `seu_qc.qs` (the final QC Seurat object), the pathway
-  embeddings, and the MSigDB Hallmark gene sets. All four `*.qs` and `.rds`
-  artifacts in the table above are sufficient for scripts `00_qc_filtering.R`
-  through `16_low_count_sensitivity.R`.
+- For perturb-seq: only `seu_qc.qs` (the final QC Seurat object) and the
+  MSigDB Hallmark gene sets. These are sufficient for scripts
+  `00_qc_filtering.R` through `09_cross_partner_overlap.R`.
 
 To re-run from raw FASTQs end-to-end, you additionally need the Cell Ranger
 output (perturb-seq) and the FASTQ files (both subprojects).
