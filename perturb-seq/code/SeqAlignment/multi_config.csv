@@ -1,0 +1,21 @@
+[gene-expression]
+reference,/afs/crc.nd.edu/group/StatDataMine/dm008/Dailin_Gan/Siyuan/PAIR-perturb-seq_2025-10/ref_genome/refdata-gex-GRCh38-2024-A
+cmo-set,/afs/crc.nd.edu/group/StatDataMine/dm008/Dailin_Gan/Siyuan/PAIR-perturb-seq_2025-10/code/SeqAlignment/cmo_set_HTO.csv
+create-bam,false
+
+[feature]
+reference,/afs/crc.nd.edu/group/StatDataMine/dm008/Dailin_Gan/Siyuan/PAIR-perturb-seq_2025-10/code/SeqAlignment/HTO_ref.csv
+
+[libraries]
+fastq_id,fastqs,feature_types
+mRNA_TT_A12-SI_TT_A12_2333FLLT3,/afs/crc.nd.edu/group/StatDataMine/dm008/Dailin_Gan/Siyuan/PAIR-perturb-seq_2025-10/raw_data/01.RawData/mRNA_TT_A12,Gene Expression
+HTO_TN_A3-SI_TN_A3_2333FLLT3,/afs/crc.nd.edu/group/StatDataMine/dm008/Dailin_Gan/Siyuan/PAIR-perturb-seq_2025-10/raw_data/01.RawData/HTO_TN_A3,Multiplexing Capture
+
+[samples]
+sample_id,cmo_ids,description
+RNP1_cmo,C0254_cmo,RNP_sgRNA_rep1
+RNP2_cmo,C0255_cmo,RNP_sgRNA_rep2
+RNP3_cmo,C0256_cmo,RNP_sgRNA_rep3
+Ctl1_cmo,C0257_cmo,Control_rep1
+Ctl2_cmo,C0258_cmo,Control_rep2
+Ctl3_cmo,C0259_cmo,Control_rep3
