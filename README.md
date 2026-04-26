@@ -1,38 +1,38 @@
 # PAIR-manuscript-code
 
-Code, analyses, and intermediate result tables supporting the PAIR (Programmable
+Code, intermediate result tables, and figures supporting the PAIR (Programmable
 CRISPR Paired Sequencing) manuscript from the **S. Zhang Lab, UT Southwestern
 Medical Center**.
 
-This repository contains two complementary experiments:
+This repository contains exactly the analysis code that generates the figures
+in the manuscript — no exploratory or robustness side-analyses.
 
-| Subdirectory | Experiment | Phenotype | Scale |
-|---|---|---|---|
-| [`ddr-screen/`](ddr-screen/) | Combinatorial CRISPR screen across 20 DDR genes (10,525 dual-crRNA PAIRs) in 293T-PAIR cells | BFP-reporter activation (DSB sensing + repair pathway engagement) | Bulk amplicon-seq, 5 samples |
-| [`perturb-seq/`](perturb-seq/) | Single-cell perturb-seq of 11 PAIR lenti lines (NBN-CRISPRa × partner KD: TP53BP1 / XRCC6 / POLQ) under DSB stress | scRNA-seq transcriptome | 2,271 cells across 1 CTRL + 2 RNP replicates |
-
-The DDR screen identifies which gene pairs gate DSB-sensing in a focused
-combinatorial space; the perturb-seq follow-up characterizes the
-transcriptional consequences of selected partner combinations under DSB stress.
+| Subdirectory | Experiment | Figures |
+|---|---|---|
+| [`ddr-screen/`](ddr-screen/) | Combinatorial CRISPR screen across 20 DDR genes (10,525 dual-crRNA PAIRs) in 293T-PAIR cells, BFP-reporter readout | Fig 2 |
+| [`perturb-seq/`](perturb-seq/) | Single-cell PAIR-perturb-seq of NBN-CRISPRa × partner KD (TP53BP1 / XRCC6 / POLQ) under DSB stress | Fig 4, Ext Fig 5 |
 
 ## Repository layout
 
 ```
 PAIR-manuscript-code/
-├── ddr-screen/         Combinatorial CRISPR screen
-│   ├── Codes/          Numbered R + Python pipeline (00–07) + FASTQ processing
-│   ├── Results/        DESeq2/edgeR result tables, gene-frequency analysis, network outputs
-│   ├── Figures/        Publication-ready PDFs (volcano, heatmap, NBN/MRE11/RBBP8 panels, network)
-│   ├── Misc/           Oligo library design, k-mer count matrix, MAGeCK input
-│   └── Docs/           Figure 2 descriptions, NBN focus interpretation, network README
-├── perturb-seq/        Single-cell perturb-seq follow-up
+├── ddr-screen/         Combinatorial CRISPR screen (Fig 2)
+│   ├── Codes/          R + Python pipeline (00–07) + FASTQ processing
+│   ├── Results/        DESeq2 / NBN-focus / network result tables (CSV)
+│   ├── Figures/        Manuscript Fig 2 panels (PDF)
+│   └── Misc/           Oligo library design, k-mer corrected count matrix
+├── perturb-seq/        Single-cell PAIR-perturb-seq (Fig 4, Ext Fig 5)
 │   ├── code/
-│   │   ├── analysis_code/  Numbered R pipeline (00–16, including robustness 14/15/16)
+│   │   ├── analysis_code/  Numbered R pipeline (00–09)
 │   │   ├── PAIR_extraction/  Python + shell for PAIR barcode extraction
-│   │   └── SeqAlignment/   CellRanger alignment scripts
-│   ├── docs/           Pipeline guide, observations summary, PAIR assignment policy
+│   │   └── SeqAlignment/   Cell Ranger alignment scripts
+│   ├── docs/           PAIR assignment policy
 │   └── info/           PAIR library structure schematic
-└── docs/               Cross-experiment documentation
+├── docs/               Cross-experiment figure → source map
+├── data/               Where to download raw + processed data (external)
+├── INSTALL.md          R + Python environment setup
+├── LICENSE             MIT
+└── README.md           This file
 ```
 
 ## Quick start
@@ -40,35 +40,31 @@ PAIR-manuscript-code/
 See [`INSTALL.md`](INSTALL.md) for environment setup. In brief:
 
 1. Install R ≥ 4.5 and the packages listed in `INSTALL.md`.
-2. Install Python ≥ 3.9 with the packages listed in `INSTALL.md`.
+2. (Only for re-running FASTQ processing) install Python ≥ 3.9 and the
+   packages listed in `INSTALL.md`.
 3. Download the data — see [`data/README.md`](data/README.md) for accession
-   numbers and host locations.
+   numbers.
 4. Configure paths:
    - **perturb-seq:** copy `perturb-seq/code/config.example.R` to
      `perturb-seq/code/config.local.R` and set `DATA_ROOT` to your local
      download path.
-   - **ddr-screen:** scripts use relative paths from the `ddr-screen/`
-     directory; no per-machine configuration needed.
-5. Run the numbered scripts in order (`00_*` first). Each subproject's README
-   has a script-by-script execution guide.
+   - **ddr-screen:** scripts use relative paths; open
+     `ddr-screen/PAIR_DDR.Rproj` in RStudio.
+5. Run the numbered scripts in order (`00_*` first).
+
+The figure-generating CSV/PDF outputs already in the repo (under
+`ddr-screen/Results/`, `ddr-screen/Figures/`) are sufficient to inspect every
+panel without re-running the upstream steps.
 
 ## Citation
 
 > _Manuscript citation TBD — to be added at publication._
 
-If you use this code or any of the analysis tables, please cite the manuscript
-above and (optionally) link this repository.
-
 ## Data availability
 
-Raw sequencing data, processed Seurat objects, pathway embeddings, and other
-files too large for git are hosted externally — see
-[`data/README.md`](data/README.md) for download links and accessions.
-
-The smaller analysis outputs that this repo *does* track (e.g. DESeq2 result
-tables under `ddr-screen/Results/`, k-mer corrected count matrix under
-`ddr-screen/Misc/`) are sufficient to regenerate every figure in the manuscript
-without re-running the upstream alignment / counting steps.
+Raw sequencing data, processed Seurat objects, and other files too large for
+git are hosted externally — see [`data/README.md`](data/README.md) for
+download links and accessions.
 
 ## License
 

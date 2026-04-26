@@ -1,12 +1,11 @@
 # Installation and environment setup
 
-This repo contains analyses run on macOS (Apple Silicon) and Linux (UTSW HPC).
-You should be able to reproduce the figure-generating steps on either platform
-once R, Python, and the listed packages are in place.
+Tested on macOS (Apple Silicon) and Linux. The figure-generating scripts in
+this repo run end-to-end once R, Python, and the listed packages are in place.
 
 ## R
 
-- **R version:** ≥ 4.5 (arm64 supported)
+- **R version:** ≥ 4.5
 
 ### Core packages (both subprojects)
 
@@ -22,7 +21,7 @@ install.packages(c(
 ```r
 install.packages(c("Seurat", "qs"))
 BiocManager::install(c("fgsea", "AUCell"))
-install.packages(c("msigdbr", "diptest"))
+install.packages("msigdbr")
 ```
 
 `Seurat` v5 is required. `qs` is used for fast object serialization (`.qs`
@@ -31,15 +30,11 @@ files in `data/objs/`).
 ### ddr-screen subproject
 
 ```r
-BiocManager::install(c("DESeq2", "edgeR", "STRINGdb", "clusterProfiler", "org.Hs.eg.db"))
+BiocManager::install(c("DESeq2", "STRINGdb", "clusterProfiler", "org.Hs.eg.db"))
 install.packages(c("igraph", "ggnetwork"))
 ```
 
-For the MAGeCK secondary analysis (referenced in the screen but not the
-primary call set), install MAGeCK separately:
-<https://sourceforge.net/p/mageck/wiki/install/>.
-
-## Python
+## Python (only required for FASTQ processing)
 
 - **Python version:** ≥ 3.9
 
@@ -50,11 +45,11 @@ pip install numpy pandas scipy biopython
 The Python code is used for FASTQ-level processing (PAIR barcode extraction in
 `perturb-seq/code/PAIR_extraction/` and DDR target/barcode extraction in
 `ddr-screen/Codes/Fastq_processing_code/`). If you start from the pre-counted
-matrices in `data/` you do not need Python.
+matrices in `data/`, Python is not needed.
 
 ## Optional / system-level
 
-- **CellRanger** (10x Genomics) — only needed if re-aligning raw FASTQs for
+- **Cell Ranger** (10x Genomics) — only needed if re-aligning raw FASTQs for
   the perturb-seq side. The repo ships the wrapper script
   `perturb-seq/code/SeqAlignment/mRNA_HTO_cellranger_count.sh`.
 - **fastp** — used by the DDR FASTQ processing wrapper.
@@ -77,16 +72,19 @@ downloaded the perturb-seq data archive (see `data/README.md`).
 
 Scripts use paths relative to `ddr-screen/`. Open
 `ddr-screen/PAIR_DDR.Rproj` in RStudio (or `cd ddr-screen` before sourcing
-scripts) so working directory is correct.
+scripts) so the working directory is correct.
 
 The FASTQ processing shell script `ddr-screen/Codes/Fastq_processing_code/UTSW25_DDR.sh`
-contains a hardcoded UTSW HPC path used during the original run. To re-run it
-yourself, edit the path at the top of the script to point to your local FASTQ
-download.
+uses `${PROJECT_ROOT:-.}` for paths. Set `PROJECT_ROOT` to your local FASTQ
+download root before running.
+
+The perturb-seq FASTQ-processing shell scripts under
+`perturb-seq/code/PAIR_extraction/` and `perturb-seq/code/SeqAlignment/`
+use the same `${PROJECT_ROOT:-.}` convention.
 
 ## Reproducing figures only
 
-If you don't need to re-run upstream processing, the `*.csv` and `*.qs` /
-`*.rds` outputs already in the repo (or downloadable from the data archive)
-are sufficient. Each figure-generating script will print which input files it
-needs at the top.
+If you don't need to re-run upstream processing, the `*.csv` files in
+`ddr-screen/Results/` plus the perturb-seq processed Seurat object
+(`seu_qc.qs`, downloadable from the data archive) are sufficient. Each
+figure-generating script lists its inputs at the top.
