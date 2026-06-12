@@ -6,35 +6,62 @@ place for them. This file is the canonical pointer to where each dataset lives.
 The preprint describing this dataset is on bioRxiv:
 <https://www.biorxiv.org/content/10.64898/2026.05.08.722799v1>
 
-> **Reviewers / readers:** if any link below is missing or returns a 404,
-> please open an issue or contact the corresponding author. Final accession
-> numbers (GEO, SRA, Zenodo) will be filled in at publication.
-
 ## perturb-seq (single-cell)
 
-| Asset | Format | Where | Approx size |
-|---|---|---|---|
-| Raw FASTQ (mRNA + HTO + PAIR libraries) | `.fastq.gz` | _GEO accession TBD_ | _TBD_ |
-| Cell Ranger output | standard 10x | _GEO accession TBD_ | _TBD_ |
-| Final QC Seurat object (`seu_qc.qs`) | `qs` (R) | _Zenodo DOI TBD_ | 85 MB |
-| Intermediate Seurat object (`seu_prep.qs`) | `qs` (R) | _Zenodo DOI TBD_ | 321 MB |
-| Pathway embeddings | `rds` | _Zenodo DOI TBD_ | 134 MB |
-| PAIR sparse UMI matrix | `mtx` | _Zenodo DOI TBD_ | 1.3 MB |
+### Processed data — Zenodo
 
-After download, set `DATA_ROOT` in `perturb-seq/code/config.local.R` to the
-directory containing the unpacked archive. The directory layout the scripts
-expect is:
+All processed perturb-seq artifacts are deposited as a single Zenodo record:
+
+> **Chen Chang & Siyuan Zhang (2026).** *Parallel Activation and Interference
+> CRISPR (PAIR) with Sequencing Uncovers DNA Repair Networks Guiding Precision
+> Cell Engineering — Processed Data.*
+> [doi:10.5281/zenodo.20672625](https://doi.org/10.5281/zenodo.20672625)
+> · canonical URL: <https://zenodo.org/records/20672625>
+> · total 565.2 MB
+
+Files in the deposit:
+
+| File | Size | Used by |
+|---|---|---|
+| `seu_qc.qs` | 88.8 MB | All `0X_*.R` analysis scripts (final QC Seurat object, 2,271 cells) |
+| `seu_prep.qs` | 336.3 MB | Upstream of QC; only needed if you want to re-run `00_qc_filtering.R` from scratch |
+| `c2_pathway_embeddings.qs` | 43.1 MB | Pathway-embedding analyses |
+| `hs_ProtTrans_embed_All.rds` | 94.9 MB | ProtTrans protein embeddings |
+| `c2.rds` | 2.0 MB | MSigDB C2 pathway gene sets |
+| `h.rds` | 28 KB | MSigDB Hallmark pathway gene sets (input to `05_fgsea_analysis.R`) |
+| `PAIR_matched_sparse_UMI_matrix.mtx` | 60.2 KB | PAIR barcode × cell sparse UMI matrix |
+| `PAIR_matched_sparse_UMI_matrix_rows.txt` | 105.9 KB | Row index for the `.mtx` |
+| `PAIR_matched_sparse_UMI_matrix_columns.txt` | 246 B | Column index for the `.mtx` |
+
+### Raw data
+
+| Asset | Format | Where |
+|---|---|---|
+| Raw FASTQ (mRNA + HTO + PAIR libraries) | `.fastq.gz` | _GEO accession TBD_ |
+| Cell Ranger output | standard 10x | _GEO accession TBD_ |
+
+### Local setup
+
+After downloading the Zenodo files, arrange them under your `DATA_ROOT`
+(set in `perturb-seq/code/config.local.R`) like this:
 
 ```
 $DATA_ROOT/
-├── data/
-│   ├── objs/                          (Seurat .qs files)
-│   ├── PAIR_output/                   (PAIR sparse UMI matrix)
-│   ├── embedding/                     (pathway embeddings)
-│   ├── mRNA_raw/                      (Cell Ranger output)
-│   ├── pathways/                      (MSigDB Hallmark gene sets)
-│   └── reference/                     (Ensembl→HGNC mapping)
-└── (output/ and figures/ are written by the analysis scripts)
+└── data/
+    ├── objs/
+    │   ├── seu_qc.qs                                 ← from Zenodo
+    │   └── seu_prep.qs                               ← from Zenodo (optional)
+    ├── PAIR_output/
+    │   ├── PAIR_matched_sparse_UMI_matrix.mtx        ← from Zenodo
+    │   ├── PAIR_matched_sparse_UMI_matrix_rows.txt   ← from Zenodo
+    │   └── PAIR_matched_sparse_UMI_matrix_columns.txt ← from Zenodo
+    ├── embedding/
+    │   ├── c2_pathway_embeddings.qs                  ← from Zenodo
+    │   ├── hs_ProtTrans_embed_All.rds                ← from Zenodo
+    │   └── pathways/
+    │       ├── c2.rds                                ← from Zenodo
+    │       └── h.rds                                 ← from Zenodo
+    └── (output/ and figures/ are written by the analysis scripts)
 ```
 
 ## ddr-screen (combinatorial CRISPR)
@@ -57,9 +84,9 @@ To regenerate every figure in the manuscript **without** re-running upstream
 processing, you need:
 
 - For ddr-screen: nothing extra — everything required is already in the repo.
-- For perturb-seq: only `seu_qc.qs` (the final QC Seurat object) and the
-  MSigDB Hallmark gene sets. These are sufficient for scripts
-  `00_qc_filtering.R` through `09_cross_partner_overlap.R`.
+- For perturb-seq: only `seu_qc.qs` and the Hallmark gene sets (`h.rds`) from
+  the Zenodo deposit. These are sufficient for scripts `00_qc_filtering.R`
+  through `09_cross_partner_overlap.R`.
 
 To re-run from raw FASTQs end-to-end, you additionally need the Cell Ranger
 output (perturb-seq) and the FASTQ files (both subprojects).
