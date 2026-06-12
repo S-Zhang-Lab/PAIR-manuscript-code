@@ -1,9 +1,5 @@
 # PAIR-manuscript-code
 
-Code, intermediate result tables, and figures supporting the PAIR (Programmable
-CRISPR Paired Sequencing) manuscript from the **S. Zhang Lab, UT Southwestern
-Medical Center**.
-
 This repository contains exactly the analysis code that generates the figures
 in the manuscript — no exploratory or robustness side-analyses.
 
