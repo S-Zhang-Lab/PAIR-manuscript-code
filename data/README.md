@@ -3,6 +3,9 @@
 Raw and bulky processed data are hosted externally because git is not the right
 place for them. This file is the canonical pointer to where each dataset lives.
 
+The preprint describing this dataset is on bioRxiv:
+<https://www.biorxiv.org/content/10.64898/2026.05.08.722799v1>
+
 > **Reviewers / readers:** if any link below is missing or returns a 404,
 > please open an issue or contact the corresponding author. Final accession
 > numbers (GEO, SRA, Zenodo) will be filled in at publication.

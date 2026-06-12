@@ -58,7 +58,16 @@ panel without re-running the upstream steps.
 
 ## Citation
 
-> _Manuscript citation TBD — to be added at publication._
+A preprint describing this work is available on bioRxiv:
+
+> Zhang Lab et al. (2026). *PAIR-seq: Programmable CRISPR Paired Sequencing for
+> dissecting combinatorial DNA damage response.* bioRxiv.
+> <https://www.biorxiv.org/content/10.64898/2026.05.08.722799v1>
+> doi:10.64898/2026.05.08.722799
+
+The peer-reviewed citation will be added here once the paper is published.
+If you use this code or any of the analysis tables, please cite the preprint
+above and (optionally) link this repository.
 
 ## Data availability
 
